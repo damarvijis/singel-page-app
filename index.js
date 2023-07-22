@@ -61,7 +61,20 @@
         setState({ home: { ...state.home, products: [], inputValue: "" }})
       }
 
-      setState({ detail: { ...state.detail, product: null, productId: null }})
+      if (nextEntityState.hash == "#detail") {
+        const url = new URL(window.location.href)
+        const params = url.searchParams
+        const paramsId = params.get("id")
+
+        if (paramsId && Number(paramsId)) {
+          setState({ detail: { ...state.detail, product: null, productId: paramsId }})
+        } else {
+          setState({ detail: { ...state.detail, product: null, productId: null }})
+        }
+      } else {
+        setState({ detail: { ...state.detail, product: null, productId: null }})
+      }
+      
   
       history.pushState(null, "", nextEntityState.hash)
     }
