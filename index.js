@@ -372,7 +372,6 @@
     return div
   }
   
-  
   const FavoriteContent = () => {
     const div = document.createElement("div")
   
@@ -478,8 +477,3 @@
       errorMessage: undefined,
     }
   }, state)
-  
-  
-  // * Fetch data when open favorite page
-  // * Fetch data when open home page
-  // * Add query string in detail page & remove query in another page
