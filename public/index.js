@@ -39,7 +39,7 @@
       errorMessage: "",
     },
     detail: {
-      productId: localStorage.getItem("productId") ?? null,
+      productId: JSON.parse(localStorage.getItem("productId")) ?? null,
       product: null,
       isLoading: false,
       errorMessage: "",
@@ -74,7 +74,6 @@
       } else {
         setState({ detail: { ...state.detail, product: null, productId: null }})
       }
-      
   
       history.pushState(null, "", nextEntityState.path)
     }
@@ -155,7 +154,7 @@
         window.history.pushState(null, "", url)
         setState({ detail: { ...state.detail, isLoading: true }})
       }
-      localStorage.setItem("productId", nextEntityState.detail.productId)
+      localStorage.setItem("productId", JSON.stringify(nextEntityState.detail.productId))
     }
   }
   
