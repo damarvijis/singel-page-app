@@ -11,6 +11,8 @@
   const constData = {
     limit: 10
   }
+  // debounce
+  let timeoutId = null
   
   // ? utils / helper
   const skipDataPagination = (page) => {
@@ -24,6 +26,7 @@
       inputValue: localStorage.getItem("inputValue") ?? "",
       products: [],
       isLoading: false,
+      loadingHomePage: false,
       errorMessage: "",
       page: 1,
       totalPage: 1,
@@ -43,8 +46,6 @@
     }
   }
   
-  let timeoutId = null
-  
   const onChangeState = (prevEntityState, nextEntityState) => {
     // Hash
     if (prevEntityState.hash != nextEntityState.hash) {
@@ -55,15 +56,7 @@
       }
 
       if (nextEntityState.hash == "#home") {
-        setState({ home: { ...state.home, products: [], inputValue: "", isLoading: true }})
-        ListProduct({ limit: constData.limit, skip: 0, search: state.home.inputValue })
-        .then((res) => res.json())
-        .then((data) => {
-          setState({ home: { ...state.home, isLoading: false, products: data.products, errorMessage: "", totalData: data.total }})
-        })
-        .catch((err) =>
-          setState({ home: { ...state.home, isLoading: false, products: [], errorMessage: err.message, totalData: 0 }})
-        )
+        setState({ home: { ...state.home, products: [], inputValue: "", page: 1, isLoading: true }})
       } else {
         setState({ home: { ...state.home, products: [], inputValue: "" }})
       }
@@ -75,28 +68,28 @@
   // Home
     if (prevEntityState.home.inputValue != nextEntityState.home.inputValue) {
       localStorage.setItem("inputValue", nextEntityState.home.inputValue)
-      setState({ home: { ...state.home, page: 1, isLoading: true }})
+      setState({ home: { ...state.home, loadingHomePage: true }})
       
       if (timeoutId != null) {
         clearTimeout(timeoutId)
       }
   
       timeoutId = setTimeout(() => {
-        ListProduct({ limit: constData.limit, skip: 0, search: state.home.inputValue })
-          .then((res) => res.json())
-          .then((data) => {
-            setState({ home: { ...state.home, isLoading: false, products: data.products, errorMessage: "", totalData: data.total }})
-          })
-          .catch((err) =>
-            setState({ home: { ...state.home, isLoading: false, products: [], errorMessage: err.message, totalData: 0 }})
-          )
+        setState({ home: { ...state.home, loadingHomePage: false, isLoading: true, page: 1 }})
       }, 500)
     }
   
     if (prevEntityState.home.page != nextEntityState.home.page) {
       setState({ home: { ...state.home, isLoading: true }})
-      const skip = skipDataPagination(nextEntityState.home.page)
+    }
   
+    if (prevEntityState.home.totalData != nextEntityState.home.totalData) {
+      const totalPage = Math.floor(state.home.totalData / constData.limit)
+      setState({ home: { ...state.home, totalPage }})
+    }
+
+    if (prevEntityState.home.isLoading === false && nextEntityState.home.isLoading === true) {
+      const skip = skipDataPagination(nextEntityState.home.page)
       ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
         .then((res) => res.json())
         .then((data) => {
@@ -105,11 +98,6 @@
         .catch((err) =>
           setState({ home: { ...state.home, isLoading: false, products: [], errorMessage: err.message, totalData: 0 }})
         )
-    }
-  
-    if (prevEntityState.home.totalData != nextEntityState.home.totalData) {
-      const totalPage = Math.floor(state.home.totalData / constData.limit)
-      setState({ home: { ...state.home, totalPage }})
     }
   
   // favorite
@@ -341,7 +329,7 @@
   
     const div = document.createElement("div")
   
-    if (state[entity].isLoading) {
+    if (state[entity].isLoading || state.home.loadingHomePage) {
       div.append(loadingText)
     } else if (state[entity].errorMessage != "") {
       div.append(errorText)
