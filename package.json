@@ -5,8 +5,10 @@
   "scripts": {
     "build:prod": "webpack --config webpack.prod.js",
     "build:dev": "webpack --config webpack.dev.js",
-    "start": "npm run build:prod && node src/server/index.js",
-    "dev": "concurrently \"npm run build:dev\"  \"nodemon src/server/index.js\""
+    "build:server:prod": "webpack --config webpack.server.prod.js",
+    "build:server:dev": "webpack --config webpack.server.dev.js",
+    "start": "npm run build:server:prod && npm run build:prod && node dist/index_server.js",
+    "dev": "concurrently \"npm run build:server:dev\" \"npm run build:dev\" \"nodemon dist/index_server.js\""
   },
   "repository": {
     "type": "git",
@@ -23,7 +25,8 @@
     "concurrently": "^8.2.0",
     "express": "^4.18.2",
     "nodemon": "^3.0.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "webpack-node-externals": "^3.0.0"
   },
   "devDependencies": {
     "html-webpack-plugin": "^5.5.3",
