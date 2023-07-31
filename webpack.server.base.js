@@ -7,6 +7,6 @@ module.exports = {
     filename: "index_server.js",
     path: path.resolve(__dirname, "dist"),
   },
-  target: 'node',
+  externalsPreset: { node: true },
   externals: [nodeExternals()],
 };
