@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "vanilla SPA with webpack",
   "scripts": {
+    "build:ts": "tsc",
     "build:prod": "webpack --config webpack.prod.js",
     "build:dev": "webpack --config webpack.dev.js",
     "build:server:prod": "webpack --config webpack.server.prod.js",
     "build:server:dev": "webpack --config webpack.server.dev.js",
-    "start": "npm run build:server:prod && npm run build:prod && node dist/index_server.js",
-    "dev": "concurrently \"npm run build:server:dev\" \"npm run build:dev\" \"nodemon dist/index_server.js\""
+    "start": "npm run build:ts && npm run build:server:prod && npm run build:prod && node dist/index_server.js",
+    "dev": "npm run build:ts && concurrently \"npm run build:server:dev\" \"npm run build:dev\" \"nodemon dist/index_server.js\""
   },
   "repository": {
     "type": "git",

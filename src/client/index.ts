@@ -1,5 +1,6 @@
-import App from "./App.js"
-import { onChangeState, state } from "./state/index.js"
+// @ts-nocheck
+import App from "./App"
+import { onChangeState, state, StateType } from "./state/index"
 
 export const render = () => {
   const content = document.getElementById('content')
@@ -10,8 +11,8 @@ export const render = () => {
     let focusedElementSelectionEnd: number | null = null
 
     if (document.activeElement instanceof HTMLInputElement) {
-      focusedElementSelectionStart = document.activeElement?.selectionStart
-      focusedElementSelectionEnd = document.activeElement?.selectionEnd
+      focusedElementSelectionStart = document.activeElement.selectionStart
+      focusedElementSelectionEnd = document.activeElement.selectionEnd
     }
 
     const app = App()
@@ -19,15 +20,18 @@ export const render = () => {
     content.append(app)
 
     if (focusedElementId) {
-      const targetElement = document.getElementById(focusedElementId) as HTMLInputElement
-      targetElement?.focus();
-      targetElement?.setSelectionRange(focusedElementSelectionStart, focusedElementSelectionEnd);
+      const targetElement = document.getElementById(focusedElementId)
+      if (targetElement instanceof HTMLInputElement) {
+        targetElement.focus();
+        targetElement.setSelectionRange(focusedElementSelectionStart, focusedElementSelectionEnd);
+      }
     }
 
   }
 }
 
 render()
+// onChangeState({} as StateType, state) // curang
 // konsep useEffect react
 onChangeState({
   path: undefined,

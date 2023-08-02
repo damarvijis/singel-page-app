@@ -1,6 +1,6 @@
-import { state } from "../state/index.js"
-import Link from "../components/Link.js"
-import DetailProduct from "../components/DetailProduct.js"
+import { state } from "../state/index"
+import Link from "../components/Link"
+import DetailProduct from "../components/DetailProduct"
 
 const DetailPage = () => {
   const div = document.createElement("div")

@@ -1,4 +1,4 @@
-import ProductList from "../components/ProductList.js"
+import ProductList from "../components/ProductList"
 
 const FavoritePage = () => {
   const div = document.createElement("div")

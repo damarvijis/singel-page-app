@@ -1,4 +1,4 @@
-import { state, setState } from "../state/index.js"
+import { state, setState } from "../state/index"
 
 const Pagination = () => {
   const div = document.createElement("div")
@@ -9,15 +9,15 @@ const Pagination = () => {
   div.style.alignItems = "center"
 
   const page = []
-  
-  for(let i = 1; i <= state.home.totalPage; i++) {
+
+  for (let i = 1; i <= state.home.totalPage; i++) {
     const button = document.createElement("button")
     if (i == state.home.page) {
       button.style.backgroundColor = "red"
     }
-    button.textContent = i
+    button.textContent = i.toString()
     button.onclick = () => {
-      setState({ home: { ...state.home, page: i, isLoading: true }})
+      setState({ home: { ...state.home, page: i, isLoading: true } })
     }
     page.push(button)
   }
