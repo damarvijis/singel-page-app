@@ -1,7 +1,8 @@
-import { state, setState } from "../state/index.js"
-import Link from "./Link.js"
+import { state, setState } from "../state/index"
+import Link from "./Link"
+import { ProductType } from "../state/index"
 
-const ProductItem = (props) => {
+const ProductItem = (props: ProductType) => {
   const div = document.createElement("div")
   div.style.display = "flex"
   div.style.flexDirection = "column"
@@ -25,21 +26,21 @@ const ProductItem = (props) => {
   buttonFavorite.onclick = () => {
     if (isFavorite) {
       const newData = state.favorite.favoriteIds.filter((id) => id != props.id)
-      setState({ favorite: { ...state.favorite, favoriteIds: newData }})
+      setState({ favorite: { ...state.favorite, favoriteIds: newData } })
 
       if (state.path == "/favorite") {
-        setState({ favorite: { ...state.favorite, isLoading: true }})
+        setState({ favorite: { ...state.favorite, isLoading: true } })
       }
     } else {
-      setState({ favorite: { ...state.favorite, favoriteIds: [...state.favorite.favoriteIds, props.id] }})
+      setState({ favorite: { ...state.favorite, favoriteIds: [...state.favorite.favoriteIds, props.id] } })
     }
   }
 
-  const linkDetail = Link({ 
-    href: "/detail", 
+  const linkDetail = Link({
+    href: "/detail",
     label: "See Detail " + props.title,
     onClick: () => {
-      setState({ detail: { ...state.detail, productId: props.id }})
+      setState({ detail: { ...state.detail, productId: props.id } })
     }
   })
 

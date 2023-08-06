@@ -1,5 +1,5 @@
-import ProductList from "../components/ProductList.js"
-import SearchProduct from "../components/SearchProduct.js"
+import ProductList from "../components/ProductList"
+import SearchProduct from "../components/SearchProduct"
 
 const HomePage = () => {
   const div = document.createElement("div")

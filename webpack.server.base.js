@@ -1,12 +1,22 @@
 const path = require("path");
-const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
-  entry: "./src/server/index.js",
+  entry: "./src/server/index.ts",
   output: {
     filename: "index_server.js",
     path: path.resolve(__dirname, "dist"),
   },
-  externalsPreset: { node: true },
-  externals: [nodeExternals()],
+  module: {
+    rules: [
+      {
+        test: /\.ts?$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".ts", ".js"],
+  },
+  target: "node",
 };

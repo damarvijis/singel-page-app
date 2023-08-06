@@ -1,4 +1,4 @@
-import Link from "./Link.js"
+import Link from "./Link"
 
 const Navbar = () => {
   const linkHome = Link({ href: "/home", label: "Home" })

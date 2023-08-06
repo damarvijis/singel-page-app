@@ -1,12 +1,56 @@
-import { ListProduct } from "../http/ListProduct.js"
-import { FindProductById } from "../http/FindProductById.js"
-import { constData } from "../const/index.js"
-import { skipDataPagination } from "../utils/index.js"
-import { render } from "../index.js"
+import { ListProduct } from "../http/ListProduct"
+import { FindProductById } from "../http/FindProductById"
+import { constData } from "../const/index"
+import { skipDataPagination } from "../utils/index"
+import { render } from "../index"
 
-let timeoutId = null
+export type ProductType = {
+  id: number
+  title: string
+  thumbnail: string
+  category: string
+  brand: string
+  description: string
+  price: number
+}
 
-export let state = {
+export type HomeType = {
+  inputValue: string
+  products: ProductType[]
+  isLoading: boolean
+  loadingHomePage: boolean
+  errorMessage: string
+  page: number
+  totalPage: number
+  totalData: number
+}
+
+export type FavoriteType = {
+  favoriteIds: number[]
+  isLoading: boolean
+  products: ProductType[]
+  errorMessage: string
+}
+
+export type DetailType = {
+  productId: number | null
+  product: ProductType | null
+  isLoading: boolean
+  errorMessage: string
+}
+
+export type StateType = {
+  path: string
+  home: HomeType
+  favorite: FavoriteType
+  detail: DetailType
+}
+
+let timeoutId: NodeJS.Timeout | null = null;
+const favoriteIds = localStorage.getItem("favoriteIds")
+const productId = localStorage.getItem("productId")
+
+export let state: StateType = {
   path: window.location.pathname,
   home: {
     inputValue: localStorage.getItem("inputValue") ?? "",
@@ -19,20 +63,20 @@ export let state = {
     totalData: 0
   },
   favorite: {
-    favoriteIds: JSON.parse(localStorage.getItem("favoriteIds")) ?? [],
+    favoriteIds: favoriteIds ? JSON.parse(favoriteIds) : [],
     isLoading: false,
     products: [],
     errorMessage: "",
   },
   detail: {
-    productId: JSON.parse(localStorage.getItem("productId")) ?? null,
+    productId: productId ? JSON.parse(productId) : null,
     product: null,
     isLoading: false,
     errorMessage: "",
   }
 }
 
-export const setState = (newState) => {
+export const setState = (newState: Partial<StateType>) => {
   const prevState = { ...state }
   const nextState = { ...prevState, ...newState }
   state = nextState
@@ -40,7 +84,7 @@ export const setState = (newState) => {
   onChangeState(prevState, nextState)
 }
 
-export const onChangeState = (prevEntityState, nextEntityState) => {
+export const onChangeState = (prevEntityState: StateType, nextEntityState: StateType) => {
   // path
   if (prevEntityState.path != nextEntityState.path) {
     if (nextEntityState.path == "/favorite") {
@@ -61,7 +105,7 @@ export const onChangeState = (prevEntityState, nextEntityState) => {
       const paramsId = params.get("id")
 
       if (paramsId && Number(paramsId)) {
-        setState({ detail: { ...state.detail, product: null, productId: paramsId } })
+        setState({ detail: { ...state.detail, product: null, productId: +paramsId } })
       } else {
         setState({ detail: { ...state.detail, product: null, productId: null } })
       }
@@ -90,7 +134,7 @@ export const onChangeState = (prevEntityState, nextEntityState) => {
   }
 
   if (prevEntityState.home.totalData != nextEntityState.home.totalData) {
-    const totalPage = Math.floor(state.home.totalData / constData.limit)
+    const totalPage = Math.floor((state.home.totalData) / constData.limit)
     setState({ home: { ...state.home, totalPage } })
   }
 
@@ -112,7 +156,7 @@ export const onChangeState = (prevEntityState, nextEntityState) => {
   }
 
   if (prevEntityState.favorite.isLoading === false && nextEntityState.favorite.isLoading === true) {
-    const fetchPromises = state.favorite.favoriteIds.map(id => FindProductById({ id })
+    const fetchPromises = state.favorite.favoriteIds.map((id: number) => FindProductById({ id })
       .then(res => res.json())
       .catch((err) => {
         setState({ favorite: { ...state.favorite, isLoading: false, products: [], errorMessage: err.message } })
@@ -140,12 +184,12 @@ export const onChangeState = (prevEntityState, nextEntityState) => {
     const url = new URL(window.location.href)
     if (nextEntityState.detail.productId == null) {
       url.search = ''
-      window.history.pushState(null, "", url)
+      window.history.pushState(null, "", url.toString())
     } else {
       const params = new URLSearchParams()
-      params.set("id", nextEntityState.detail.productId)
+      params.set("id", JSON.stringify(nextEntityState.detail.productId))
       url.search = params.toString()
-      window.history.pushState(null, "", url)
+      window.history.pushState(null, "", url.toString())
       setState({ detail: { ...state.detail, isLoading: true } })
     }
     localStorage.setItem("productId", JSON.stringify(nextEntityState.detail.productId))

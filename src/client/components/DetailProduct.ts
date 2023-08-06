@@ -1,4 +1,6 @@
-const DetailProduct = (props) => {
+import { ProductType } from "../state"
+
+const DetailProduct = (props: ProductType) => {
   const div = document.createElement("div")
   div.style.display = "flex"
   div.style.flexDirection = "column"

@@ -1,8 +1,8 @@
-import { state } from "./state/index.js"
-import Navbar from "./components/Navbar.js"
-import HomePage from "./pages/HomePage.js"
-import FavoritePage from "./pages/FavoritePage.js"
-import DetailPage from "./pages/DetailPage.js"
+import { state } from "./state/index"
+import Navbar from "./components/Navbar"
+import HomePage from "./pages/HomePage"
+import FavoritePage from "./pages/FavoritePage"
+import DetailPage from "./pages/DetailPage"
 
 const App = () => {
   const div = document.createElement("div")
