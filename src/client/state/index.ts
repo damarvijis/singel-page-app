@@ -3,6 +3,7 @@ import { FindProductById } from "../http/FindProductById"
 import { constData } from "../const/index"
 import { skipDataPagination } from "../utils/index"
 import { render } from "../index"
+import { sendAction, ActionTypeEnum } from "../reducer"
 
 export type ProductType = {
   id: number
@@ -88,29 +89,27 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   // path
   if (prevEntityState.path != nextEntityState.path) {
     if (nextEntityState.path == "/favorite") {
-      setState({ favorite: { ...state.favorite, products: [], isLoading: true } })
-    } else {
-      setState({ favorite: { ...state.favorite, products: [] } })
+      sendAction({ type: ActionTypeEnum.FETCH_FAVORITE })
     }
 
     if (nextEntityState.path == "/home") {
-      setState({ home: { ...state.home, products: [], inputValue: "", page: 1, isLoading: true } })
-    } else {
-      setState({ home: { ...state.home, products: [], inputValue: "" } })
+      // RESET sama FETCH beda action type
+      sendAction({ type: ActionTypeEnum.RESET_HOME })
     }
-
     if (nextEntityState.path == "/detail") {
       const url = new URL(window.location.href)
       const params = url.searchParams
       const paramsId = params.get("id")
 
-      if (paramsId && Number(paramsId)) {
-        setState({ detail: { ...state.detail, product: null, productId: +paramsId } })
-      } else {
-        setState({ detail: { ...state.detail, product: null, productId: null } })
-      }
+      sendAction({
+        type: ActionTypeEnum.SET_DETAIL,
+        payload: { productId: paramsId && Number(paramsId) ? Number(paramsId) : null }
+      })
     } else {
-      setState({ detail: { ...state.detail, product: null, productId: null } })
+      sendAction({
+        type: ActionTypeEnum.SET_DETAIL,
+        payload: { productId: null }
+      })
     }
 
     history.pushState(null, "", nextEntityState.path)
@@ -118,24 +117,27 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   // Home
   if (prevEntityState.home.inputValue != nextEntityState.home.inputValue) {
     localStorage.setItem("inputValue", nextEntityState.home.inputValue)
-    setState({ home: { ...state.home, loadingHomePage: true } })
+    sendAction({ type: ActionTypeEnum.DEBOUNCE })
 
     if (timeoutId != null) {
       clearTimeout(timeoutId)
     }
 
     timeoutId = setTimeout(() => {
-      setState({ home: { ...state.home, loadingHomePage: false, isLoading: true, page: 1 } })
+      sendAction({ type: ActionTypeEnum.FETCH_HOME })
     }, 500)
   }
 
   if (prevEntityState.home.page != nextEntityState.home.page) {
-    setState({ home: { ...state.home, isLoading: true } })
+    sendAction({ type: ActionTypeEnum.FETCH_HOME })
   }
 
   if (prevEntityState.home.totalData != nextEntityState.home.totalData) {
     const totalPage = Math.floor((state.home.totalData) / constData.limit)
-    setState({ home: { ...state.home, totalPage } })
+    sendAction({
+      type: ActionTypeEnum.GET_TOTAL_PAGE,
+      payload: { totalPage }
+    })
   }
 
   if (prevEntityState.home.isLoading === false && nextEntityState.home.isLoading === true) {
@@ -143,10 +145,19 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
     ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
       .then((res) => res.json())
       .then((data) => {
-        setState({ home: { ...state.home, isLoading: false, products: data.products, errorMessage: "", totalData: data.total } })
+        sendAction({
+          type: ActionTypeEnum.FETCH_HOME_SUCCESS,
+          payload: {
+            products: data.products,
+            totalData: data.total
+          }
+        })
       })
       .catch((err) =>
-        setState({ home: { ...state.home, isLoading: false, products: [], errorMessage: err.message, totalData: 0 } })
+        sendAction({
+          type: ActionTypeEnum.FETCH_HOME_ERROR,
+          payload: { errorMessage: err.message }
+        })
       )
   }
 
@@ -158,14 +169,23 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   if (prevEntityState.favorite.isLoading === false && nextEntityState.favorite.isLoading === true) {
     const fetchPromises = state.favorite.favoriteIds.map((id: number) => FindProductById({ id })
       .then(res => res.json())
-      .catch((err) => {
-        setState({ favorite: { ...state.favorite, isLoading: false, products: [], errorMessage: err.message } })
-      })
+      .catch((err) =>
+        sendAction({
+          type: ActionTypeEnum.FETCH_FAVORITE_ERROR,
+          payload: { errorMessage: err.message }
+        })
+      )
     )
     Promise.all(fetchPromises)
       .then(res => {
-        setState({ favorite: { ...state.favorite, products: res, isLoading: false, errorMessage: "" } })
-      })
+        sendAction({
+          type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS,
+          payload: { products: res }
+        })
+      }).catch(err => sendAction({
+        type: ActionTypeEnum.FETCH_FAVORITE_ERROR,
+        payload: { errorMessage: err.message }
+      }))
   }
 
   // detail
@@ -174,9 +194,15 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
       FindProductById({ id: state.detail.productId })
         .then((res) => res.json())
         .then((product) => {
-          setState({ detail: { ...state.detail, isLoading: false, product, errorMessage: "" } })
+          sendAction({
+            type: ActionTypeEnum.FETCH_DETAIL_SUCCESS,
+            payload: { product }
+          })
         })
-        .catch(err => setState({ detail: { ...state.detail, isLoading: false, product: null, errorMessage: err.message } }))
+        .catch(err => sendAction({
+          type: ActionTypeEnum.FETCH_DETAIL_ERROR,
+          payload: { errorMessage: err.message }
+        }))
     }
   }
 
@@ -190,7 +216,7 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
       params.set("id", JSON.stringify(nextEntityState.detail.productId))
       url.search = params.toString()
       window.history.pushState(null, "", url.toString())
-      setState({ detail: { ...state.detail, isLoading: true } })
+      sendAction({ type: ActionTypeEnum.FETCH_DETAIL })
     }
     localStorage.setItem("productId", JSON.stringify(nextEntityState.detail.productId))
   }

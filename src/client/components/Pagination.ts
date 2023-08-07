@@ -1,4 +1,5 @@
-import { state, setState } from "../state/index"
+import { state } from "../state/index"
+import { sendAction, ActionTypeEnum } from "../reducer"
 
 const Pagination = () => {
   const div = document.createElement("div")
@@ -17,7 +18,10 @@ const Pagination = () => {
     }
     button.textContent = i.toString()
     button.onclick = () => {
-      setState({ home: { ...state.home, page: i, isLoading: true } })
+      sendAction({
+        type: ActionTypeEnum.CHANGE_PAGE,
+        payload: { page: i }
+      })
     }
     page.push(button)
   }

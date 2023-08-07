@@ -1,6 +1,6 @@
-import { state, setState } from "../state/index"
+import { state, ProductType } from "../state/index"
 import Link from "./Link"
-import { ProductType } from "../state/index"
+import { sendAction, ActionTypeEnum } from "../reducer"
 
 const ProductItem = (props: ProductType) => {
   const div = document.createElement("div")
@@ -26,13 +26,19 @@ const ProductItem = (props: ProductType) => {
   buttonFavorite.onclick = () => {
     if (isFavorite) {
       const newData = state.favorite.favoriteIds.filter((id) => id != props.id)
-      setState({ favorite: { ...state.favorite, favoriteIds: newData } })
+      sendAction({
+        type: ActionTypeEnum.ADD_FAVORITE,
+        payload: { favoriteIds: newData }
+      })
 
       if (state.path == "/favorite") {
-        setState({ favorite: { ...state.favorite, isLoading: true } })
+        sendAction({ type: ActionTypeEnum.FETCH_FAVORITE })
       }
     } else {
-      setState({ favorite: { ...state.favorite, favoriteIds: [...state.favorite.favoriteIds, props.id] } })
+      sendAction({
+        type: ActionTypeEnum.ADD_FAVORITE,
+        payload: { favoriteIds: [...state.favorite.favoriteIds, props.id] }
+      })
     }
   }
 
@@ -40,7 +46,10 @@ const ProductItem = (props: ProductType) => {
     href: "/detail",
     label: "See Detail " + props.title,
     onClick: () => {
-      setState({ detail: { ...state.detail, productId: props.id } })
+      sendAction({
+        type: ActionTypeEnum.SET_DETAIL,
+        payload: { productId: props.id }
+      })
     }
   })
 
