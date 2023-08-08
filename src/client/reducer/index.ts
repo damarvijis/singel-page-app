@@ -1,4 +1,5 @@
 import { setState, state, StateType, HomeType, DetailType, FavoriteType } from "../state";
+import { match } from "ts-pattern"
 
 export enum ActionTypeEnum {
   ADD_FAVORITE = "add_favorite",
@@ -123,8 +124,9 @@ type ActionType =
   ActionFetchDetailErrorType
 
 const reducer = (prevState: StateType, action: ActionType): StateType => {
+  // return match<[StateType, ActionType], StateType>([prevState,action]).with({ type: ActionTypeEnum.NAVIGATE }, (value) => { ...prevState, path: action.payload.path })
+  // Khusus Global Action
   switch (action.type) {
-    // Navigate & Favorite
     case ActionTypeEnum.NAVIGATE:
       return {
         ...prevState,
@@ -138,151 +140,306 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
           favoriteIds: action.payload.favoriteIds
         }
       }
-    // HOME
-    case ActionTypeEnum.FETCH_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          isLoading: true,
-          loadingHomePage: false,
-          errorMessage: ""
-        }
+  }
+  /*
+   Finite State Machine dibuat per-entity (action dibatasi dari tag) | Dari Interface contoh: idle -> loading -> success. gabisa kaya success -> idle
+   Perbedaan sama reducer, reducer hanya berfokus pada tugas dari masing2 action. tapi bisa ada celah di penggunaan nya karena kita ga handle tag
+  */
+  // Home
+  switch (prevState.home.tag) {
+    case "idle":
+      switch (action.type) {
+        case ActionTypeEnum.DEBOUNCE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "debounce",
+            }
+          }
+        case ActionTypeEnum.FETCH_HOME:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
+        case ActionTypeEnum.RESET_HOME:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "loading",
+              page: 1,
+              inputValue: ""
+            }
+          }
       }
-    case ActionTypeEnum.RESET_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          isLoading: true,
-          page: 1,
-          inputValue: ""
-        }
+    case "debounce": {
+      switch (action.type) {
+        case ActionTypeEnum.CHANGE_INPUT:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: 1,
+              tag: "loading",
+              inputValue: action.payload.inputValue
+            }
+          }
+        case ActionTypeEnum.FETCH_HOME:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
       }
-    case ActionTypeEnum.GET_TOTAL_PAGE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          totalPage: action.payload.totalPage
-        }
+    }
+    case "loading": {
+      switch (action.type) {
+        case ActionTypeEnum.FETCH_HOME_SUCCESS:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              products: action.payload.products,
+              totalData: action.payload.totalData,
+              tag: action.payload.products.length == 0 ? "empty" : "success",
+              errorMessage: ""
+            }
+          }
+        case ActionTypeEnum.FETCH_HOME_ERROR:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              errorMessage: action.payload.errorMessage,
+              products: [],
+              tag: "error",
+            }
+          }
       }
-    case ActionTypeEnum.CHANGE_PAGE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          page: action.payload.page
-        }
+    }
+    case "success": {
+      switch (action.type) {
+        case ActionTypeEnum.RESET_HOME:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "loading",
+              page: 1,
+              inputValue: ""
+            }
+          }
+        case ActionTypeEnum.GET_TOTAL_PAGE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              totalPage: action.payload.totalPage
+            }
+          }
+        case ActionTypeEnum.CHANGE_PAGE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: action.payload.page,
+              tag: "loading"
+            }
+          }
+        case ActionTypeEnum.CHANGE_INPUT:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: 1,
+              inputValue: action.payload.inputValue
+            }
+          }
+        case ActionTypeEnum.DEBOUNCE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "debounce",
+            }
+          }
       }
-    case ActionTypeEnum.CHANGE_INPUT:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          page: 1,
-          inputValue: action.payload.inputValue
-        }
+    }
+    case "empty": {
+      switch (action.type) {
+        case ActionTypeEnum.CHANGE_INPUT:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: 1,
+              inputValue: action.payload.inputValue
+            }
+          }
+        case ActionTypeEnum.DEBOUNCE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "debounce",
+            }
+          }
       }
-    case ActionTypeEnum.DEBOUNCE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          loadingHomePage: true,
-        }
+    }
+    case "error": {
+      switch (action.type) {
+        case ActionTypeEnum.CHANGE_INPUT:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: 1,
+              inputValue: action.payload.inputValue
+            }
+          }
+        case ActionTypeEnum.DEBOUNCE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "debounce",
+            }
+          }
       }
-    case ActionTypeEnum.FETCH_HOME_SUCCESS:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          products: action.payload.products,
-          totalData: action.payload.totalData,
-          isLoading: false,
-          errorMessage: ""
-        }
+    }
+  }
+  // Favorite
+  switch (prevState.favorite.tag) {
+    case "idle":
+      switch (action.type) {
+        case ActionTypeEnum.FETCH_FAVORITE:
+          return {
+            ...prevState,
+            favorite: {
+              ...prevState.favorite,
+              products: [],
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
       }
-    case ActionTypeEnum.FETCH_HOME_ERROR:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          errorMessage: action.payload.errorMessage,
-          products: [],
-          isLoading: false
-        }
+    case "loading": {
+      switch (action.type) {
+        case ActionTypeEnum.FETCH_FAVORITE_SUCCESS:
+          return {
+            ...prevState,
+            favorite: {
+              ...prevState.favorite,
+              products: action.payload.products,
+              tag: action.payload.products.length == 0 ? "empty" : "success",
+              errorMessage: ""
+            }
+          }
+        case ActionTypeEnum.FETCH_FAVORITE_ERROR:
+          return {
+            ...prevState,
+            favorite: {
+              ...prevState.favorite,
+              products: [],
+              tag: "error",
+              errorMessage: action.payload.errorMessage
+            }
+          }
       }
-    // DETAIL
-    case ActionTypeEnum.SET_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          productId: action.payload.productId
-        }
+    }
+    case "success": {
+      switch (action.type) {
+        case ActionTypeEnum.FETCH_FAVORITE:
+          return {
+            ...prevState,
+            favorite: {
+              ...prevState.favorite,
+              products: [],
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
       }
-    case ActionTypeEnum.FETCH_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: null,
-          isLoading: true,
-          errorMessage: ""
-        }
+    }
+  }
+  // Detail
+  switch (prevState.detail.tag) {
+    case "idle":
+      switch (action.type) {
+        case ActionTypeEnum.SET_DETAIL:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              productId: action.payload.productId
+            }
+          }
+        case ActionTypeEnum.FETCH_DETAIL:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              product: null,
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
       }
-    case ActionTypeEnum.FETCH_DETAIL_SUCCESS:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: action.payload.product,
-          isLoading: false,
-          errorMessage: ""
-        }
+    case "loading": {
+      switch (action.type) {
+        case ActionTypeEnum.FETCH_DETAIL_SUCCESS:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              product: action.payload.product,
+              tag: "success",
+              errorMessage: ""
+            }
+          }
+        case ActionTypeEnum.FETCH_DETAIL_ERROR:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              product: null,
+              tag: "error",
+              errorMessage: action.payload.errorMessage
+            }
+          }
       }
-    case ActionTypeEnum.FETCH_DETAIL_ERROR:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: null,
-          isLoading: false,
-          errorMessage: action.payload.errorMessage
-        }
+    }
+    case "success": {
+      switch (action.type) {
+        case ActionTypeEnum.SET_DETAIL:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              productId: action.payload.productId
+            }
+          }
+        case ActionTypeEnum.FETCH_DETAIL:
+          return {
+            ...prevState,
+            detail: {
+              ...prevState.detail,
+              product: null,
+              tag: "loading",
+              errorMessage: ""
+            }
+          }
       }
-    // FAVORITE
-    case ActionTypeEnum.FETCH_FAVORITE:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          products: [],
-          isLoading: true,
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.FETCH_FAVORITE_SUCCESS:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          products: action.payload.products,
-          isLoading: false,
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.FETCH_FAVORITE_ERROR:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          products: [],
-          isLoading: false,
-          errorMessage: action.payload.errorMessage
-        }
-      }
+    }
+
     default:
       return prevState
   }
@@ -293,16 +450,8 @@ export const sendAction = (action: ActionType) => {
   setState(newState)
 }
 
-// 1. bisa aja ga terima param prevState di reducer & sendAction, karena udah dapet dari state? gabisa
-
-// 2. action enum & reducer dibuat per-entity (per-page) atau jadi 1 kaya state? jadi 1 reducer
-
-// 3. masih butuh kah FETCH_EMPTY di reducer? kan sama2 sukses fetching
-
 /*
-  enum harus per-entity
-  bikin action enum detail, home, favorite
-  bikin type nya masing2 juga
-  action type => https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html
-  fsm bikin per entity
+  Kenapa match gabisa? :(
+  Perlu ga buat reset all tag -> idle kalo pindah halaman?
+  Perlu cek tag di sideEffect?
 */

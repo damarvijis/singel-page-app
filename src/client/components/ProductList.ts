@@ -18,17 +18,19 @@ const ProductList = (entity: keyof Pick<StateType, "home" | "favorite">) => {
 
   const div = document.createElement("div")
 
-  if (state[entity]?.isLoading || state.home.loadingHomePage) {
+  if (state[entity]?.tag == "loading" || state[entity]?.tag == "debounce") {
     div.append(loadingText)
-  } else if (state[entity]?.errorMessage != "") {
+  } else if (state[entity]?.tag == "error") {
     div.append(errorText)
-  } else if (state[entity]?.products.length == 0) {
+  } else if (state[entity]?.tag == "empty") {
     div.append(emptyText)
-  } else {
+  } else if (state[entity]?.tag == "success") {
     div.append(...productItem)
     if (state.path == "/home" || state.path == "/") {
       div.append(pagination)
     }
+  } else {
+    // page 404
   }
 
   return div
