@@ -6,23 +6,36 @@ export enum ActionTypeEnum {
   NAVIGATE = "navigate",
   // HOME
   FETCH_HOME = "fetch_home",
+  REFETCH_HOME = "refetch_home",
   RESET_HOME = "reset_home",
   FETCH_HOME_SUCCESS = "fetch_home_success",
   FETCH_HOME_ERROR = "fetch_home_error",
   CHANGE_INPUT = "change_input",
+  CHANGE_PAGE_SUCCESS = "change_page_success",
+  CHANGE_PAGE_ERROR = "change_page_error",
+  RECHANGE_PAGE = "rechange_page",
   CHANGE_PAGE = "change_page",
-  DEBOUNCE = "debounce",
   GET_TOTAL_PAGE = "get_total_page",
   // DETAIL
   SET_DETAIL = "set_detail",
-  FETCH_DETAIL = "fetch_detail",
+  RESET_DETAIL = "reset_detail",
+  REFETCH_DETAIL = "refetch_detail",
   FETCH_DETAIL_SUCCESS = "fetch_detail_success",
   FETCH_DETAIL_ERROR = "fetch_detail_error",
   // FAVORITE
+  RESET_FAVORITE = "reset_favorite",
   FETCH_FAVORITE = "fetch_favorite",
+  REFETCH_FAVORITE = "refetch_favorite",
   FETCH_FAVORITE_SUCCESS = "fetch_favorite_success",
   FETCH_FAVORITE_ERROR = "fetch_favorite_error"
 }
+
+/*
+type ActionType = 
+| { type: "fetch"} }
+| { type: "fetchSuccess", payload: {} }
+| { type: "fetchError", payload: {  } }
+*/
 
 type ActionNavigateType = {
   type: ActionTypeEnum.NAVIGATE
@@ -34,8 +47,31 @@ type ActionAddFavoriteType = {
   payload: Pick<FavoriteType, "favoriteIds">
 }
 
+type ActionResetFavoriteType = {
+  type: ActionTypeEnum.RESET_FAVORITE
+}
+
 type ActionFetchHomeType = {
   type: ActionTypeEnum.FETCH_HOME
+}
+
+type ActionRefetchHomeType = {
+  type: ActionTypeEnum.REFETCH_HOME
+}
+
+type ActionRechangePageHomeType = {
+  type: ActionTypeEnum.RECHANGE_PAGE
+  payload: Pick<HomeType, "page">
+}
+
+type ActionChangePageHomeSuccessType = {
+  type: ActionTypeEnum.CHANGE_PAGE_SUCCESS
+  payload: Pick<HomeType, "products">
+}
+
+type ActionChangePageHomeErrorType = {
+  type: ActionTypeEnum.CHANGE_PAGE_ERROR
+  payload: Pick<HomeType, "errorMessage">
 }
 
 type ActionResetHomeType = {
@@ -45,15 +81,6 @@ type ActionResetHomeType = {
 type ActionFetchHomeSuccessType = {
   type: ActionTypeEnum.FETCH_HOME_SUCCESS
   payload: Pick<HomeType, "products" | "totalData">
-}
-
-type ActionDebounceType = {
-  type: ActionTypeEnum.DEBOUNCE
-}
-
-type ActionGetTotalPageType = {
-  type: ActionTypeEnum.GET_TOTAL_PAGE
-  payload: Pick<HomeType, "totalPage">
 }
 
 type ActionChangeInputType = {
@@ -76,9 +103,14 @@ type ActionSetDetailType = {
   payload: Pick<DetailType, "productId">
 }
 
-type ActionFetchDetailType = {
-  type: ActionTypeEnum.FETCH_DETAIL
+type ActionResetDetailType = {
+  type: ActionTypeEnum.RESET_DETAIL
 }
+
+type ActionRefetchDetailType = {
+  type: ActionTypeEnum.REFETCH_DETAIL
+}
+
 
 type ActionFetchDetailSuccessType = {
   type: ActionTypeEnum.FETCH_DETAIL_SUCCESS
@@ -94,6 +126,10 @@ type ActionFetchFavoriteType = {
   type: ActionTypeEnum.FETCH_FAVORITE
 }
 
+type ActionRefetchFavoriteType = {
+  type: ActionTypeEnum.REFETCH_FAVORITE
+}
+
 type ActionFetchFavoriteSuccessType = {
   type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS
   payload: Pick<FavoriteType, "products">
@@ -104,29 +140,68 @@ type ActionFetchFavoriteErrorType = {
   payload: Pick<FavoriteType, "errorMessage">
 }
 
-type ActionType =
+export type ActionType =
+  ActionRechangePageHomeType |
+  ActionChangePageHomeSuccessType |
+  ActionChangePageHomeErrorType |
   ActionNavigateType |
   ActionAddFavoriteType |
-  ActionGetTotalPageType |
   ActionChangeInputType |
   ActionChangePageType |
-  ActionDebounceType |
   ActionResetHomeType |
+  ActionResetFavoriteType |
   ActionFetchHomeType |
+  ActionRefetchHomeType |
   ActionFetchHomeSuccessType |
   ActionFetchHomeErrorType |
   ActionFetchFavoriteType |
+  ActionRefetchFavoriteType |
   ActionFetchFavoriteSuccessType |
   ActionFetchFavoriteErrorType |
+  ActionResetDetailType |
   ActionSetDetailType |
-  ActionFetchDetailType |
+  ActionRefetchDetailType |
   ActionFetchDetailSuccessType |
   ActionFetchDetailErrorType
 
 const reducer = (prevState: StateType, action: ActionType): StateType => {
-  // return match<[StateType, ActionType], StateType>([prevState,action]).with({ type: ActionTypeEnum.NAVIGATE }, (value) => { ...prevState, path: action.payload.path })
   // Khusus Global Action
   switch (action.type) {
+    // reset screen state
+    case ActionTypeEnum.RESET_HOME:
+      return {
+        ...prevState,
+        home: {
+          ...prevState.home,
+          tag: "idle",
+          page: 1,
+          inputValue: "",
+          products: [],
+          errorMessage: "",
+          totalData: 0
+        }
+      }
+    case ActionTypeEnum.RESET_DETAIL:
+      return {
+        ...prevState,
+        detail: {
+          ...prevState.detail,
+          tag: "idle",
+          product: null,
+          productId: null,
+          errorMessage: "",
+        }
+      }
+    case ActionTypeEnum.RESET_FAVORITE:
+      return {
+        ...prevState,
+        favorite: {
+          ...prevState.favorite,
+          tag: "idle",
+          products: [],
+          errorMessage: ""
+        }
+      }
     case ActionTypeEnum.NAVIGATE:
       return {
         ...prevState,
@@ -149,14 +224,6 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
   switch (prevState.home.tag) {
     case "idle":
       switch (action.type) {
-        case ActionTypeEnum.DEBOUNCE:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "debounce",
-            }
-          }
         case ActionTypeEnum.FETCH_HOME:
           return {
             ...prevState,
@@ -166,18 +233,8 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
               errorMessage: ""
             }
           }
-        case ActionTypeEnum.RESET_HOME:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              page: 1,
-              inputValue: ""
-            }
-          }
       }
-    case "debounce": {
+    case "loading": {
       switch (action.type) {
         case ActionTypeEnum.CHANGE_INPUT:
           return {
@@ -185,23 +242,9 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
             home: {
               ...prevState.home,
               page: 1,
-              tag: "loading",
               inputValue: action.payload.inputValue
             }
           }
-        case ActionTypeEnum.FETCH_HOME:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              errorMessage: ""
-            }
-          }
-      }
-    }
-    case "loading": {
-      switch (action.type) {
         case ActionTypeEnum.FETCH_HOME_SUCCESS:
           return {
             ...prevState,
@@ -227,31 +270,13 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
     }
     case "success": {
       switch (action.type) {
-        case ActionTypeEnum.RESET_HOME:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              page: 1,
-              inputValue: ""
-            }
-          }
-        case ActionTypeEnum.GET_TOTAL_PAGE:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              totalPage: action.payload.totalPage
-            }
-          }
         case ActionTypeEnum.CHANGE_PAGE:
           return {
             ...prevState,
             home: {
               ...prevState.home,
               page: action.payload.page,
-              tag: "loading"
+              tag: "changing-page"
             }
           }
         case ActionTypeEnum.CHANGE_INPUT:
@@ -260,15 +285,31 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
             home: {
               ...prevState.home,
               page: 1,
+              tag: "loading",
               inputValue: action.payload.inputValue
             }
           }
-        case ActionTypeEnum.DEBOUNCE:
+      }
+    }
+    case "changing-page": {
+      switch (action.type) {
+        case ActionTypeEnum.CHANGE_PAGE_SUCCESS:
           return {
             ...prevState,
             home: {
               ...prevState.home,
-              tag: "debounce",
+              products: action.payload.products,
+              tag: "success"
+            }
+          }
+        case ActionTypeEnum.CHANGE_PAGE_ERROR:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              products: [],
+              errorMessage: action.payload.errorMessage,
+              tag: "changing-page-error"
             }
           }
       }
@@ -280,16 +321,9 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
             ...prevState,
             home: {
               ...prevState.home,
+              tag: "loading",
               page: 1,
               inputValue: action.payload.inputValue
-            }
-          }
-        case ActionTypeEnum.DEBOUNCE:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "debounce",
             }
           }
       }
@@ -301,16 +335,40 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
             ...prevState,
             home: {
               ...prevState.home,
+              tag: "loading",
               page: 1,
               inputValue: action.payload.inputValue
             }
           }
-        case ActionTypeEnum.DEBOUNCE:
+        case ActionTypeEnum.REFETCH_HOME:
           return {
             ...prevState,
             home: {
               ...prevState.home,
-              tag: "debounce",
+              tag: "loading"
+            }
+          }
+      }
+    }
+    case "changing-page-error": {
+      switch (action.type) {
+        case ActionTypeEnum.CHANGE_INPUT:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              tag: "loading",
+              page: 1,
+              inputValue: action.payload.inputValue
+            }
+          }
+        case ActionTypeEnum.RECHANGE_PAGE:
+          return {
+            ...prevState,
+            home: {
+              ...prevState.home,
+              page: action.payload.page,
+              tag: "changing-page"
             }
           }
       }
@@ -369,6 +427,18 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
           }
       }
     }
+    case "error": {
+      switch (action.type) {
+        case ActionTypeEnum.REFETCH_FAVORITE:
+          return {
+            ...prevState,
+            favorite: {
+              ...prevState.favorite,
+              tag: "loading"
+            }
+          }
+      }
+    }
   }
   // Detail
   switch (prevState.detail.tag) {
@@ -379,17 +449,8 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
             ...prevState,
             detail: {
               ...prevState.detail,
-              productId: action.payload.productId
-            }
-          }
-        case ActionTypeEnum.FETCH_DETAIL:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              product: null,
               tag: "loading",
-              errorMessage: ""
+              productId: action.payload.productId
             }
           }
       }
@@ -417,24 +478,14 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
           }
       }
     }
-    case "success": {
+    case "error": {
       switch (action.type) {
-        case ActionTypeEnum.SET_DETAIL:
+        case ActionTypeEnum.REFETCH_DETAIL:
           return {
             ...prevState,
             detail: {
               ...prevState.detail,
-              productId: action.payload.productId
-            }
-          }
-        case ActionTypeEnum.FETCH_DETAIL:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              product: null,
-              tag: "loading",
-              errorMessage: ""
+              tag: "loading"
             }
           }
       }
@@ -449,9 +500,3 @@ export const sendAction = (action: ActionType) => {
   const newState = reducer(state, action)
   setState(newState)
 }
-
-/*
-  Kenapa match gabisa? :(
-  Perlu ga buat reset all tag -> idle kalo pindah halaman?
-  Perlu cek tag di sideEffect?
-*/
