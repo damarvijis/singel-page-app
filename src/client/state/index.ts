@@ -32,7 +32,6 @@ export type FavoriteType = {
 }
 
 export type DetailType = {
-  productId: number | null
   product: ProductType | null
   tag: "idle" | "loading" | "success" | "error"
   errorMessage: string
@@ -40,6 +39,7 @@ export type DetailType = {
 
 export type StateType = {
   path: string
+  query: Record<string, string> // tambah query string
   home: HomeType
   favorite: FavoriteType
   detail: DetailType
@@ -47,10 +47,10 @@ export type StateType = {
 
 let timeoutId: NodeJS.Timeout | null = null;
 const favoriteIds = localStorage.getItem("favoriteIds")
-const productId = localStorage.getItem("productId")
 
 export let state: StateType = {
   path: window.location.pathname,
+  query: {},
   home: {
     inputValue: localStorage.getItem("inputValue") ?? "",
     products: [],
@@ -66,7 +66,6 @@ export let state: StateType = {
     errorMessage: "",
   },
   detail: {
-    productId: productId ? JSON.parse(productId) : null,
     product: null,
     tag: "idle",
     errorMessage: "",
@@ -86,10 +85,7 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   if (prevEntityState.path != nextEntityState.path) {
     sendAction({ type: ActionTypeEnum.RESET_HOME })
     sendAction({ type: ActionTypeEnum.RESET_FAVORITE })
-
-    if (nextEntityState.path != "/detail") {
-      sendAction({ type: ActionTypeEnum.RESET_DETAIL })
-    }
+    sendAction({ type: ActionTypeEnum.RESET_DETAIL })
 
     history.pushState(null, "", nextEntityState.path)
   }
@@ -98,17 +94,16 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
     localStorage.setItem("favoriteIds", JSON.stringify(nextEntityState.favorite.favoriteIds))
   }
 
-  if (prevEntityState.detail.productId != nextEntityState.detail.productId) {
+  if (prevEntityState.query != nextEntityState.query) {
     const url = new URL(window.location.href)
-    if (nextEntityState.detail.productId == null) {
+    if (Object.keys(nextEntityState.query).length == 0) {
       url.search = ''
     } else {
       const params = new URLSearchParams()
-      params.set("id", JSON.stringify(nextEntityState.detail.productId))
+      Object.keys(nextEntityState.query).forEach((key) => params.set(key, nextEntityState.query[key]))
       url.search = params.toString()
     }
     window.history.pushState(null, "", url.toString())
-    localStorage.setItem("productId", JSON.stringify(nextEntityState.detail.productId))
   }
   // home
   if (nextEntityState.path == "/home" || nextEntityState.path == "/") {
@@ -173,7 +168,7 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
         sendAction({ type: ActionTypeEnum.FETCH_FAVORITE })
         break;
       case "loading":
-        const fetchPromises = state.favorite.favoriteIds.map((id: number) => FindProductById({ id })
+        const fetchPromises = state.favorite.favoriteIds.map(id => FindProductById({ id })
           .then(res => res.json())
           .catch((err) =>
             sendAction({
@@ -200,9 +195,12 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   // detail
   if (nextEntityState.path == "/detail") {
     switch (nextEntityState.detail.tag) {
+      case "idle":
+        sendAction({ type: ActionTypeEnum.FETCH_DETAIL })
+        break;
       case "loading":
-        if (state.detail.productId)
-          FindProductById({ id: state.detail.productId })
+        if (state.query.id)
+          FindProductById({ id: Number(state.query.id) })
             .then((res) => res.json())
             .then((product) => {
               sendAction({

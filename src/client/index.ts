@@ -35,6 +35,7 @@ render()
 // konsep useEffect react
 onChangeState({
   path: undefined,
+  query: undefined,
   home: {
     inputValue: undefined,
     products: undefined,
@@ -51,7 +52,6 @@ onChangeState({
     errorMessage: undefined,
   },
   detail: {
-    productId: undefined,
     product: undefined,
     tag: undefined,
     errorMessage: undefined,

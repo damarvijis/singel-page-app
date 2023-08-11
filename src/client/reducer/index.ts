@@ -1,8 +1,8 @@
-import { setState, state, StateType, HomeType, DetailType, FavoriteType } from "../state";
+import { setState, state, StateType, HomeType, DetailType, FavoriteType, ProductType } from "../state";
 import { match } from "ts-pattern"
 
 export enum ActionTypeEnum {
-  ADD_FAVORITE = "add_favorite",
+  TOGGLE_FAVORITE = "toggle_favorite",
   NAVIGATE = "navigate",
   // HOME
   FETCH_HOME = "fetch_home",
@@ -17,7 +17,7 @@ export enum ActionTypeEnum {
   CHANGE_PAGE = "change_page",
   GET_TOTAL_PAGE = "get_total_page",
   // DETAIL
-  SET_DETAIL = "set_detail",
+  FETCH_DETAIL = "fetch_detail",
   RESET_DETAIL = "reset_detail",
   REFETCH_DETAIL = "refetch_detail",
   FETCH_DETAIL_SUCCESS = "fetch_detail_success",
@@ -39,12 +39,12 @@ type ActionType =
 
 type ActionNavigateType = {
   type: ActionTypeEnum.NAVIGATE
-  payload: Pick<StateType, "path">
+  payload: Pick<StateType, "path" | "query">
 }
 
 type ActionAddFavoriteType = {
-  type: ActionTypeEnum.ADD_FAVORITE
-  payload: Pick<FavoriteType, "favoriteIds">
+  type: ActionTypeEnum.TOGGLE_FAVORITE
+  payload: Pick<ProductType, "id">
 }
 
 type ActionResetFavoriteType = {
@@ -99,8 +99,7 @@ type ActionFetchHomeErrorType = {
 }
 
 type ActionSetDetailType = {
-  type: ActionTypeEnum.SET_DETAIL
-  payload: Pick<DetailType, "productId">
+  type: ActionTypeEnum.FETCH_DETAIL
 }
 
 type ActionResetDetailType = {
@@ -165,62 +164,23 @@ export type ActionType =
   ActionFetchDetailErrorType
 
 const reducer = (prevState: StateType, action: ActionType): StateType => {
-  // Khusus Global Action
-  switch (action.type) {
-    // reset screen state
-    case ActionTypeEnum.RESET_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          tag: "idle",
-          page: 1,
-          inputValue: "",
-          products: [],
-          errorMessage: "",
-          totalData: 0
-        }
-      }
-    case ActionTypeEnum.RESET_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          tag: "idle",
-          product: null,
-          productId: null,
-          errorMessage: "",
-        }
-      }
-    case ActionTypeEnum.RESET_FAVORITE:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          tag: "idle",
-          products: [],
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.NAVIGATE:
-      return {
-        ...prevState,
-        path: action.payload.path
-      }
-    case ActionTypeEnum.ADD_FAVORITE:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          favoriteIds: action.payload.favoriteIds
-        }
-      }
-  }
   /*
    Finite State Machine dibuat per-entity (action dibatasi dari tag) | Dari Interface contoh: idle -> loading -> success. gabisa kaya success -> idle
    Perbedaan sama reducer, reducer hanya berfokus pada tugas dari masing2 action. tapi bisa ada celah di penggunaan nya karena kita ga handle tag
+   Semua Logic taro di reducer
   */
   // Home
+  // return match<[StateType, ActionType], StateType>([prevState, action])
+  //   .with([{ favorite: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_FAVORITE }], ([prevState, action]) =>
+  //   ({
+  //     ...prevState, favorite: {
+  //       ...prevState.favorite,
+  //       products: [],
+  //       tag: "loading",
+  //       errorMessage: ""
+  //     }
+  //   }))
+  //   .otherwise(() => prevState)
   switch (prevState.home.tag) {
     case "idle":
       switch (action.type) {
@@ -415,12 +375,15 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
     }
     case "success": {
       switch (action.type) {
-        case ActionTypeEnum.FETCH_FAVORITE:
+        case ActionTypeEnum.TOGGLE_FAVORITE:
+          const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
+          const newFavoriteIds = isFavorite ? state.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...state.favorite.favoriteIds, action.payload.id]
           return {
             ...prevState,
             favorite: {
               ...prevState.favorite,
               products: [],
+              favoriteIds: newFavoriteIds,
               tag: "loading",
               errorMessage: ""
             }
@@ -444,13 +407,12 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
   switch (prevState.detail.tag) {
     case "idle":
       switch (action.type) {
-        case ActionTypeEnum.SET_DETAIL:
+        case ActionTypeEnum.FETCH_DETAIL:
           return {
             ...prevState,
             detail: {
               ...prevState.detail,
-              tag: "loading",
-              productId: action.payload.productId
+              tag: "loading"
             }
           }
       }
@@ -490,7 +452,59 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
           }
       }
     }
-
+  }
+  // Khusus Global Action
+  switch (action.type) {
+    // reset screen state
+    case ActionTypeEnum.RESET_HOME:
+      return {
+        ...prevState,
+        home: {
+          ...prevState.home,
+          tag: "idle",
+          page: 1,
+          inputValue: "",
+          products: [],
+          errorMessage: "",
+          totalData: 0
+        }
+      }
+    case ActionTypeEnum.RESET_DETAIL:
+      return {
+        ...prevState,
+        detail: {
+          ...prevState.detail,
+          tag: "idle",
+          product: null,
+          errorMessage: "",
+        }
+      }
+    case ActionTypeEnum.RESET_FAVORITE:
+      return {
+        ...prevState,
+        favorite: {
+          ...prevState.favorite,
+          tag: "idle",
+          products: [],
+          errorMessage: ""
+        }
+      }
+    case ActionTypeEnum.NAVIGATE:
+      return {
+        ...prevState,
+        path: action.payload.path,
+        query: action.payload.query
+      }
+    case ActionTypeEnum.TOGGLE_FAVORITE:
+      const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
+      const newFavoriteIds = isFavorite ? state.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...state.favorite.favoriteIds, action.payload.id]
+      return {
+        ...prevState,
+        favorite: {
+          ...prevState.favorite,
+          favoriteIds: newFavoriteIds
+        }
+      }
     default:
       return prevState
   }
