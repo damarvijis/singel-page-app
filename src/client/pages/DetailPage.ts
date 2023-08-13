@@ -1,7 +1,8 @@
-import { state } from "../state/index"
+import { state, StateType } from "../state/index"
 import Link from "../components/Link"
 import DetailProduct from "../components/DetailProduct"
 import { sendAction, ActionTypeEnum } from "../reducer"
+import { match } from "ts-pattern"
 
 const DetailPage = () => {
   const div = document.createElement("div")
@@ -22,21 +23,21 @@ const DetailPage = () => {
 
   div.append(linkBack)
 
-  if (state.detail.tag == "loading") {
-    div.append(loadingText)
-  } else if (state.detail.tag == "error") {
-    div.append(errorText)
-    div.append(buttonRefetch)
-  } else if (state.detail.tag == "success") {
-    if (state.detail.product) {
-      successText.textContent = "ini detail product " + state.detail.product.title
-      const product = DetailProduct(state.detail.product)
-      div.append(successText)
-      div.append(product)
-    }
-  } else {
-    // page 404
-  }
+  match<StateType["detail"]["tag"], void>(state.detail.tag)
+    .with("loading", () => div.append(loadingText))
+    .with("error", () => {
+      div.append(errorText)
+      div.append(buttonRefetch)
+    })
+    .with("success", () => {
+      if (state.detail.product) {
+        successText.textContent = "ini detail product " + state.detail.product.title
+        const product = DetailProduct(state.detail.product)
+        div.append(successText)
+        div.append(product)
+      }
+    })
+    .otherwise(() => { })
   return div
 }
 

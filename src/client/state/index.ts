@@ -2,8 +2,9 @@ import { ListProduct } from "../http/ListProduct"
 import { constData } from "../const/index"
 import { skipDataPagination } from "../utils/index"
 import { render } from "../index"
-import { sendAction, ActionTypeEnum } from "../reducer"
+import { sendAction, ActionTypeEnum, ActionType } from "../reducer"
 import { FindProductById } from "../http/FindProductById"
+import { match } from "ts-pattern"
 
 export type ProductType = {
   id: number
@@ -107,11 +108,9 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
   }
   // home
   if (nextEntityState.path == "/home" || nextEntityState.path == "/") {
-    switch (nextEntityState.home.tag) {
-      case "idle":
-        sendAction({ type: ActionTypeEnum.FETCH_HOME })
-        break;
-      case "loading":
+    match<StateType["home"]["tag"], void>(nextEntityState.home.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_HOME }))
+      .with("loading", () => {
         localStorage.setItem("inputValue", nextEntityState.home.inputValue)
         if (timeoutId != null) {
           clearTimeout(timeoutId)
@@ -137,8 +136,8 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
               })
             )
         }, 500)
-        break;
-      case "changing-page":
+      })
+      .with("changing-page", () => {
         const skip = skipDataPagination(nextEntityState.home.page)
         ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
           .then((res) => res.json())
@@ -156,18 +155,14 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
               payload: { errorMessage: err.message }
             })
           )
-        break;
-      default:
-        break;
-    }
+      })
+      .otherwise(() => { })
   }
   // favorite
   if (nextEntityState.path == "/favorite") {
-    switch (nextEntityState.favorite.tag) {
-      case "idle":
-        sendAction({ type: ActionTypeEnum.FETCH_FAVORITE })
-        break;
-      case "loading":
+    match<StateType["favorite"]["tag"], void>(nextEntityState.favorite.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_FAVORITE }))
+      .with("loading", () => {
         const fetchPromises = state.favorite.favoriteIds.map(id => FindProductById({ id })
           .then(res => res.json())
           .catch((err) =>
@@ -187,18 +182,14 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
             type: ActionTypeEnum.FETCH_FAVORITE_ERROR,
             payload: { errorMessage: err.message }
           }))
-
-      default:
-        break;
-    }
+      })
+      .otherwise(() => { })
   }
   // detail
   if (nextEntityState.path == "/detail") {
-    switch (nextEntityState.detail.tag) {
-      case "idle":
-        sendAction({ type: ActionTypeEnum.FETCH_DETAIL })
-        break;
-      case "loading":
+    match<StateType["detail"]["tag"], void>(nextEntityState.detail.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_DETAIL }))
+      .with("loading", () => {
         if (state.query.id)
           FindProductById({ id: Number(state.query.id) })
             .then((res) => res.json())
@@ -217,11 +208,7 @@ export const onChangeState = (prevEntityState: StateType, nextEntityState: State
             type: ActionTypeEnum.FETCH_DETAIL_ERROR,
             payload: { errorMessage: "Masukin product_id woi!" }
           })
-        break;
-
-      default:
-        break;
-    }
-
+      })
+      .otherwise(() => { })
   }
 }

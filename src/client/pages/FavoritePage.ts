@@ -1,6 +1,7 @@
 import ProductList from "../components/ProductList"
-import { state } from "../state"
+import { state, StateType } from "../state"
 import { sendAction, ActionTypeEnum } from "../reducer"
+import { match } from "ts-pattern"
 
 const FavoritePage = () => {
   const div = document.createElement("div")
@@ -25,19 +26,15 @@ const FavoritePage = () => {
   emptyText.textContent = "Product Empty"
 
   div.append(title)
-  if (state.favorite.tag == "loading") {
-    div.append(loadingText)
-  } else if (state.favorite.tag == "error") {
-    div.append(errorText)
-    div.append(buttonRefetch)
-  } else if (state.favorite.tag == "empty") {
-    div.append(emptyText)
-  } else if (state.favorite.tag == "success") {
-    div.append(productList)
-  } else {
-    // page 404
-  }
-  div.append(productList)
+  match<StateType["favorite"]["tag"], void>(state.favorite.tag)
+    .with("loading", () => div.append(loadingText))
+    .with("error", () => {
+      div.append(errorText)
+      div.append(buttonRefetch)
+    })
+    .with("empty", () => div.append(emptyText))
+    .with("success", () => div.append(productList))
+    .otherwise(() => { })
 
   return div
 }
