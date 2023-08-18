@@ -24,33 +24,15 @@ const ProductItem = (props: ProductType) => {
   const buttonFavorite = document.createElement("button")
   buttonFavorite.textContent = isFavorite ? "Delete from favorite" : "Add to favorite"
   buttonFavorite.onclick = () => {
-    if (isFavorite) {
-      const newData = state.favorite.favoriteIds.filter((id) => id != props.id)
-      sendAction({
-        type: ActionTypeEnum.ADD_FAVORITE,
-        payload: { favoriteIds: newData }
-      })
-
-      if (state.path == "/favorite") {
-        sendAction({ type: ActionTypeEnum.FETCH_FAVORITE })
-      }
-    } else {
-      sendAction({
-        type: ActionTypeEnum.ADD_FAVORITE,
-        payload: { favoriteIds: [...state.favorite.favoriteIds, props.id] }
-      })
-    }
+    sendAction({
+      type: ActionTypeEnum.TOGGLE_FAVORITE,
+      payload: { id: props.id }
+    })
   }
 
   const linkDetail = Link({
-    href: "/detail",
-    label: "See Detail " + props.title,
-    onClick: () => {
-      sendAction({
-        type: ActionTypeEnum.SET_DETAIL,
-        payload: { productId: props.id }
-      })
-    }
+    href: "/detail?id=" + props.id,
+    label: "See Detail " + props.title
   })
 
   div.append(image)

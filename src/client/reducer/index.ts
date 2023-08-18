@@ -1,40 +1,77 @@
-import { setState, state, StateType, HomeType, DetailType, FavoriteType } from "../state";
+import { setState, state, StateType, HomeType, DetailType, FavoriteType, ProductType } from "../state";
+import { match } from "ts-pattern"
 
 export enum ActionTypeEnum {
-  ADD_FAVORITE = "add_favorite",
+  TOGGLE_FAVORITE = "toggle_favorite",
   NAVIGATE = "navigate",
   // HOME
   FETCH_HOME = "fetch_home",
+  REFETCH_HOME = "refetch_home",
   RESET_HOME = "reset_home",
   FETCH_HOME_SUCCESS = "fetch_home_success",
   FETCH_HOME_ERROR = "fetch_home_error",
   CHANGE_INPUT = "change_input",
+  CHANGE_PAGE_SUCCESS = "change_page_success",
+  CHANGE_PAGE_ERROR = "change_page_error",
+  RECHANGE_PAGE = "rechange_page",
   CHANGE_PAGE = "change_page",
-  DEBOUNCE = "debounce",
   GET_TOTAL_PAGE = "get_total_page",
   // DETAIL
-  SET_DETAIL = "set_detail",
   FETCH_DETAIL = "fetch_detail",
+  RESET_DETAIL = "reset_detail",
+  REFETCH_DETAIL = "refetch_detail",
   FETCH_DETAIL_SUCCESS = "fetch_detail_success",
   FETCH_DETAIL_ERROR = "fetch_detail_error",
   // FAVORITE
+  RESET_FAVORITE = "reset_favorite",
   FETCH_FAVORITE = "fetch_favorite",
+  REFETCH_FAVORITE = "refetch_favorite",
   FETCH_FAVORITE_SUCCESS = "fetch_favorite_success",
   FETCH_FAVORITE_ERROR = "fetch_favorite_error"
 }
 
+/*
+type ActionType = 
+| { type: "fetch"} }
+| { type: "fetchSuccess", payload: {} }
+| { type: "fetchError", payload: {  } }
+*/
+
 type ActionNavigateType = {
   type: ActionTypeEnum.NAVIGATE
-  payload: Pick<StateType, "path">
+  payload: Pick<StateType, "path" | "query">
 }
 
 type ActionAddFavoriteType = {
-  type: ActionTypeEnum.ADD_FAVORITE
-  payload: Pick<FavoriteType, "favoriteIds">
+  type: ActionTypeEnum.TOGGLE_FAVORITE
+  payload: Pick<ProductType, "id">
+}
+
+type ActionResetFavoriteType = {
+  type: ActionTypeEnum.RESET_FAVORITE
 }
 
 type ActionFetchHomeType = {
   type: ActionTypeEnum.FETCH_HOME
+}
+
+type ActionRefetchHomeType = {
+  type: ActionTypeEnum.REFETCH_HOME
+}
+
+type ActionRechangePageHomeType = {
+  type: ActionTypeEnum.RECHANGE_PAGE
+  payload: Pick<HomeType, "page">
+}
+
+type ActionChangePageHomeSuccessType = {
+  type: ActionTypeEnum.CHANGE_PAGE_SUCCESS
+  payload: Pick<HomeType, "products">
+}
+
+type ActionChangePageHomeErrorType = {
+  type: ActionTypeEnum.CHANGE_PAGE_ERROR
+  payload: Pick<HomeType, "errorMessage">
 }
 
 type ActionResetHomeType = {
@@ -44,15 +81,6 @@ type ActionResetHomeType = {
 type ActionFetchHomeSuccessType = {
   type: ActionTypeEnum.FETCH_HOME_SUCCESS
   payload: Pick<HomeType, "products" | "totalData">
-}
-
-type ActionDebounceType = {
-  type: ActionTypeEnum.DEBOUNCE
-}
-
-type ActionGetTotalPageType = {
-  type: ActionTypeEnum.GET_TOTAL_PAGE
-  payload: Pick<HomeType, "totalPage">
 }
 
 type ActionChangeInputType = {
@@ -71,13 +99,17 @@ type ActionFetchHomeErrorType = {
 }
 
 type ActionSetDetailType = {
-  type: ActionTypeEnum.SET_DETAIL
-  payload: Pick<DetailType, "productId">
-}
-
-type ActionFetchDetailType = {
   type: ActionTypeEnum.FETCH_DETAIL
 }
+
+type ActionResetDetailType = {
+  type: ActionTypeEnum.RESET_DETAIL
+}
+
+type ActionRefetchDetailType = {
+  type: ActionTypeEnum.REFETCH_DETAIL
+}
+
 
 type ActionFetchDetailSuccessType = {
   type: ActionTypeEnum.FETCH_DETAIL_SUCCESS
@@ -93,6 +125,10 @@ type ActionFetchFavoriteType = {
   type: ActionTypeEnum.FETCH_FAVORITE
 }
 
+type ActionRefetchFavoriteType = {
+  type: ActionTypeEnum.REFETCH_FAVORITE
+}
+
 type ActionFetchFavoriteSuccessType = {
   type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS
   payload: Pick<FavoriteType, "products">
@@ -103,206 +139,308 @@ type ActionFetchFavoriteErrorType = {
   payload: Pick<FavoriteType, "errorMessage">
 }
 
-type ActionType =
+export type ActionType =
+  ActionRechangePageHomeType |
+  ActionChangePageHomeSuccessType |
+  ActionChangePageHomeErrorType |
   ActionNavigateType |
   ActionAddFavoriteType |
-  ActionGetTotalPageType |
   ActionChangeInputType |
   ActionChangePageType |
-  ActionDebounceType |
   ActionResetHomeType |
+  ActionResetFavoriteType |
   ActionFetchHomeType |
+  ActionRefetchHomeType |
   ActionFetchHomeSuccessType |
   ActionFetchHomeErrorType |
   ActionFetchFavoriteType |
+  ActionRefetchFavoriteType |
   ActionFetchFavoriteSuccessType |
   ActionFetchFavoriteErrorType |
+  ActionResetDetailType |
   ActionSetDetailType |
-  ActionFetchDetailType |
+  ActionRefetchDetailType |
   ActionFetchDetailSuccessType |
   ActionFetchDetailErrorType
 
 const reducer = (prevState: StateType, action: ActionType): StateType => {
-  switch (action.type) {
-    // Navigate & Favorite
-    case ActionTypeEnum.NAVIGATE:
-      return {
-        ...prevState,
-        path: action.payload.path
+  /*
+   Finite State Machine dibuat per-entity (action dibatasi dari tag) | Dari Interface contoh: idle -> loading -> success. gabisa kaya success -> idle
+   Perbedaan sama reducer, reducer hanya berfokus pada tugas dari masing2 action. tapi bisa ada celah di penggunaan nya karena kita ga handle tag
+   Semua Logic taro di reducer
+  */
+  // Home
+  return match<[StateType, ActionType], StateType>([prevState, action])
+    // Home
+    .with([{ home: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        errorMessage: ""
       }
-    case ActionTypeEnum.ADD_FAVORITE:
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: 1,
+        inputValue: action.payload.inputValue
+      }
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_HOME_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: action.payload.products,
+        totalData: action.payload.totalData,
+        tag: action.payload.products.length == 0 ? "empty" : "success",
+        errorMessage: ""
+      }
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_HOME_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        errorMessage: action.payload.errorMessage,
+        products: [],
+        tag: "error",
+      }
+    }))
+    .with([{ home: { tag: "success" } }, { type: ActionTypeEnum.CHANGE_PAGE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: action.payload.page,
+        tag: "changing-page"
+      }
+    }))
+    .with([{ home: { tag: "success" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: 1,
+        tag: "loading",
+        inputValue: action.payload.inputValue
+      }
+    }))
+    .with([{ home: { tag: "changing-page" } }, { type: ActionTypeEnum.CHANGE_PAGE_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: action.payload.products,
+        tag: "success"
+      }
+    }))
+    .with([{ home: { tag: "changing-page" } }, { type: ActionTypeEnum.CHANGE_PAGE_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: [],
+        errorMessage: action.payload.errorMessage,
+        tag: "changing-page-error"
+      }
+    }))
+    .with([{ home: { tag: "empty" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
+      }
+    }))
+    .with([{ home: { tag: "error" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
+      }
+    }))
+    .with([{ home: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading"
+      }
+    }))
+    .with([{ home: { tag: "changing-page-error" } }, { type: ActionTypeEnum.RECHANGE_PAGE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: action.payload.page,
+        tag: "changing-page"
+      }
+    }))
+    .with([{ home: { tag: "changing-page-error" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
+      }
+    }))
+    // Favorite
+    .with([{ favorite: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: [],
+        tag: "loading",
+        errorMessage: ""
+      }
+    }))
+    .with([{ favorite: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: action.payload.products,
+        tag: action.payload.products.length == 0 ? "empty" : "success",
+        errorMessage: ""
+      }
+    }))
+    .with([{ favorite: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_FAVORITE_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: [],
+        tag: "error",
+        errorMessage: action.payload.errorMessage
+      }
+    }))
+    .with([{ favorite: { tag: "success" } }, { type: ActionTypeEnum.TOGGLE_FAVORITE }], ([prevState, action]) => {
+      const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
+      const newFavoriteIds = isFavorite ? prevState.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...prevState.favorite.favoriteIds, action.payload.id]
       return {
         ...prevState,
         favorite: {
           ...prevState.favorite,
-          favoriteIds: action.payload.favoriteIds
-        }
-      }
-    // HOME
-    case ActionTypeEnum.FETCH_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          isLoading: true,
-          loadingHomePage: false,
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.RESET_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          isLoading: true,
-          page: 1,
-          inputValue: ""
-        }
-      }
-    case ActionTypeEnum.GET_TOTAL_PAGE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          totalPage: action.payload.totalPage
-        }
-      }
-    case ActionTypeEnum.CHANGE_PAGE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          page: action.payload.page
-        }
-      }
-    case ActionTypeEnum.CHANGE_INPUT:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          page: 1,
-          inputValue: action.payload.inputValue
-        }
-      }
-    case ActionTypeEnum.DEBOUNCE:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          loadingHomePage: true,
-        }
-      }
-    case ActionTypeEnum.FETCH_HOME_SUCCESS:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          products: action.payload.products,
-          totalData: action.payload.totalData,
-          isLoading: false,
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.FETCH_HOME_ERROR:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          errorMessage: action.payload.errorMessage,
           products: [],
-          isLoading: false
-        }
-      }
-    // DETAIL
-    case ActionTypeEnum.SET_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          productId: action.payload.productId
-        }
-      }
-    case ActionTypeEnum.FETCH_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: null,
-          isLoading: true,
+          favoriteIds: newFavoriteIds,
+          tag: "loading",
           errorMessage: ""
         }
       }
-    case ActionTypeEnum.FETCH_DETAIL_SUCCESS:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: action.payload.product,
-          isLoading: false,
-          errorMessage: ""
-        }
+    })
+    .with([{ favorite: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        tag: "loading"
       }
-    case ActionTypeEnum.FETCH_DETAIL_ERROR:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          product: null,
-          isLoading: false,
-          errorMessage: action.payload.errorMessage
-        }
+    }))
+    // Detail
+    .with([{ detail: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "loading"
       }
-    // FAVORITE
-    case ActionTypeEnum.FETCH_FAVORITE:
+    }))
+    .with([{ detail: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_DETAIL_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        product: action.payload.product,
+        tag: "success",
+        errorMessage: ""
+      }
+    }))
+    .with([{ detail: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_DETAIL_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        product: null,
+        tag: "error",
+        errorMessage: action.payload.errorMessage
+      }
+    }))
+    .with([{ detail: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "loading"
+      }
+    }))
+    // Global Action
+    .with([{}, { type: ActionTypeEnum.RESET_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "idle",
+        page: 1,
+        inputValue: "",
+        products: [],
+        errorMessage: "",
+        totalData: 0
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.RESET_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "idle",
+        product: null,
+        errorMessage: "",
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.RESET_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        tag: "idle",
+        products: [],
+        errorMessage: ""
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.NAVIGATE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      path: action.payload.path,
+      query: action.payload.query
+    }))
+    .with([{}, { type: ActionTypeEnum.TOGGLE_FAVORITE }], ([prevState, action]) => {
+      const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
+      const newFavoriteIds = isFavorite ? prevState.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...prevState.favorite.favoriteIds, action.payload.id]
       return {
         ...prevState,
         favorite: {
           ...prevState.favorite,
-          products: [],
-          isLoading: true,
-          errorMessage: ""
+          favoriteIds: newFavoriteIds
         }
       }
-    case ActionTypeEnum.FETCH_FAVORITE_SUCCESS:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          products: action.payload.products,
-          isLoading: false,
-          errorMessage: ""
-        }
-      }
-    case ActionTypeEnum.FETCH_FAVORITE_ERROR:
-      return {
-        ...prevState,
-        favorite: {
-          ...prevState.favorite,
-          products: [],
-          isLoading: false,
-          errorMessage: action.payload.errorMessage
-        }
-      }
-    default:
-      return prevState
-  }
+    })
+    .otherwise(() => prevState)
 }
 
 export const sendAction = (action: ActionType) => {
   const newState = reducer(state, action)
   setState(newState)
 }
-
-// 1. bisa aja ga terima param prevState di reducer & sendAction, karena udah dapet dari state? gabisa
-
-// 2. action enum & reducer dibuat per-entity (per-page) atau jadi 1 kaya state? jadi 1 reducer
-
-// 3. masih butuh kah FETCH_EMPTY di reducer? kan sama2 sukses fetching
-
-/*
-  enum harus per-entity
-  bikin action enum detail, home, favorite
-  bikin type nya masing2 juga
-  action type => https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html
-  fsm bikin per entity
-*/

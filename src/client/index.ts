@@ -35,10 +35,11 @@ render()
 // konsep useEffect react
 onChangeState({
   path: undefined,
+  query: undefined,
   home: {
     inputValue: undefined,
     products: undefined,
-    isLoading: undefined,
+    tag: undefined,
     errorMessage: undefined,
     page: undefined,
     totalPage: undefined,
@@ -46,14 +47,13 @@ onChangeState({
   },
   favorite: {
     favoriteIds: undefined,
-    isLoading: undefined,
+    tag: undefined,
     products: undefined,
     errorMessage: undefined,
   },
   detail: {
-    productId: undefined,
     product: undefined,
-    isLoading: undefined,
+    tag: undefined,
     errorMessage: undefined,
   }
 }, state)
