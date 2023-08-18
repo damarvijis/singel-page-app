@@ -1,8 +1,10 @@
 import { ListProduct } from "../http/ListProduct"
-import { FindProductById } from "../http/FindProductById"
 import { constData } from "../const/index"
 import { skipDataPagination } from "../utils/index"
 import { render } from "../index"
+import { sendAction, ActionTypeEnum, ActionType } from "../reducer"
+import { FindProductById } from "../http/FindProductById"
+import { match } from "ts-pattern"
 
 export type ProductType = {
   id: number
@@ -17,30 +19,28 @@ export type ProductType = {
 export type HomeType = {
   inputValue: string
   products: ProductType[]
-  isLoading: boolean
-  loadingHomePage: boolean
+  tag: "idle" | "loading" | "empty" | "success" | "error" | "changing-page-error" | "changing-page"
   errorMessage: string
   page: number
-  totalPage: number
   totalData: number
 }
 
 export type FavoriteType = {
   favoriteIds: number[]
-  isLoading: boolean
+  tag: "idle" | "loading" | "empty" | "success" | "error"
   products: ProductType[]
   errorMessage: string
 }
 
 export type DetailType = {
-  productId: number | null
   product: ProductType | null
-  isLoading: boolean
+  tag: "idle" | "loading" | "success" | "error"
   errorMessage: string
 }
 
 export type StateType = {
   path: string
+  query: Record<string, string> // tambah query string
   home: HomeType
   favorite: FavoriteType
   detail: DetailType
@@ -48,30 +48,27 @@ export type StateType = {
 
 let timeoutId: NodeJS.Timeout | null = null;
 const favoriteIds = localStorage.getItem("favoriteIds")
-const productId = localStorage.getItem("productId")
 
 export let state: StateType = {
   path: window.location.pathname,
+  query: {},
   home: {
     inputValue: localStorage.getItem("inputValue") ?? "",
     products: [],
-    isLoading: false,
-    loadingHomePage: false,
+    tag: "idle",
     errorMessage: "",
     page: 1,
-    totalPage: 1,
     totalData: 0
   },
   favorite: {
     favoriteIds: favoriteIds ? JSON.parse(favoriteIds) : [],
-    isLoading: false,
+    tag: "idle",
     products: [],
     errorMessage: "",
   },
   detail: {
-    productId: productId ? JSON.parse(productId) : null,
     product: null,
-    isLoading: false,
+    tag: "idle",
     errorMessage: "",
   }
 }
@@ -85,113 +82,133 @@ export const setState = (newState: Partial<StateType>) => {
 }
 
 export const onChangeState = (prevEntityState: StateType, nextEntityState: StateType) => {
-  // path
+  // reset state on change path
   if (prevEntityState.path != nextEntityState.path) {
-    if (nextEntityState.path == "/favorite") {
-      setState({ favorite: { ...state.favorite, products: [], isLoading: true } })
-    } else {
-      setState({ favorite: { ...state.favorite, products: [] } })
-    }
-
-    if (nextEntityState.path == "/home") {
-      setState({ home: { ...state.home, products: [], inputValue: "", page: 1, isLoading: true } })
-    } else {
-      setState({ home: { ...state.home, products: [], inputValue: "" } })
-    }
-
-    if (nextEntityState.path == "/detail") {
-      const url = new URL(window.location.href)
-      const params = url.searchParams
-      const paramsId = params.get("id")
-
-      if (paramsId && Number(paramsId)) {
-        setState({ detail: { ...state.detail, product: null, productId: +paramsId } })
-      } else {
-        setState({ detail: { ...state.detail, product: null, productId: null } })
-      }
-    } else {
-      setState({ detail: { ...state.detail, product: null, productId: null } })
-    }
+    sendAction({ type: ActionTypeEnum.RESET_HOME })
+    sendAction({ type: ActionTypeEnum.RESET_FAVORITE })
+    sendAction({ type: ActionTypeEnum.RESET_DETAIL })
 
     history.pushState(null, "", nextEntityState.path)
   }
-  // Home
-  if (prevEntityState.home.inputValue != nextEntityState.home.inputValue) {
-    localStorage.setItem("inputValue", nextEntityState.home.inputValue)
-    setState({ home: { ...state.home, loadingHomePage: true } })
-
-    if (timeoutId != null) {
-      clearTimeout(timeoutId)
-    }
-
-    timeoutId = setTimeout(() => {
-      setState({ home: { ...state.home, loadingHomePage: false, isLoading: true, page: 1 } })
-    }, 500)
-  }
-
-  if (prevEntityState.home.page != nextEntityState.home.page) {
-    setState({ home: { ...state.home, isLoading: true } })
-  }
-
-  if (prevEntityState.home.totalData != nextEntityState.home.totalData) {
-    const totalPage = Math.floor((state.home.totalData) / constData.limit)
-    setState({ home: { ...state.home, totalPage } })
-  }
-
-  if (prevEntityState.home.isLoading === false && nextEntityState.home.isLoading === true) {
-    const skip = skipDataPagination(nextEntityState.home.page)
-    ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
-      .then((res) => res.json())
-      .then((data) => {
-        setState({ home: { ...state.home, isLoading: false, products: data.products, errorMessage: "", totalData: data.total } })
-      })
-      .catch((err) =>
-        setState({ home: { ...state.home, isLoading: false, products: [], errorMessage: err.message, totalData: 0 } })
-      )
-  }
-
-  // favorite
+  // global side effect
   if (prevEntityState.favorite.favoriteIds != nextEntityState.favorite.favoriteIds) {
     localStorage.setItem("favoriteIds", JSON.stringify(nextEntityState.favorite.favoriteIds))
   }
 
-  if (prevEntityState.favorite.isLoading === false && nextEntityState.favorite.isLoading === true) {
-    const fetchPromises = state.favorite.favoriteIds.map((id: number) => FindProductById({ id })
-      .then(res => res.json())
-      .catch((err) => {
-        setState({ favorite: { ...state.favorite, isLoading: false, products: [], errorMessage: err.message } })
-      })
-    )
-    Promise.all(fetchPromises)
-      .then(res => {
-        setState({ favorite: { ...state.favorite, products: res, isLoading: false, errorMessage: "" } })
-      })
-  }
-
-  // detail
-  if (prevEntityState.detail.isLoading === false && nextEntityState.detail.isLoading === true) {
-    if (state.detail.productId) {
-      FindProductById({ id: state.detail.productId })
-        .then((res) => res.json())
-        .then((product) => {
-          setState({ detail: { ...state.detail, isLoading: false, product, errorMessage: "" } })
-        })
-        .catch(err => setState({ detail: { ...state.detail, isLoading: false, product: null, errorMessage: err.message } }))
-    }
-  }
-
-  if (prevEntityState.detail.productId != nextEntityState.detail.productId) {
+  if (prevEntityState.query != nextEntityState.query) {
     const url = new URL(window.location.href)
-    if (nextEntityState.detail.productId == null) {
+    if (Object.keys(nextEntityState.query).length == 0) {
       url.search = ''
-      window.history.pushState(null, "", url.toString())
     } else {
       const params = new URLSearchParams()
-      params.set("id", JSON.stringify(nextEntityState.detail.productId))
+      Object.keys(nextEntityState.query).forEach((key) => params.set(key, nextEntityState.query[key]))
       url.search = params.toString()
-      window.history.pushState(null, "", url.toString())
-      setState({ detail: { ...state.detail, isLoading: true } })
     }
-    localStorage.setItem("productId", JSON.stringify(nextEntityState.detail.productId))
+    window.history.pushState(null, "", url.toString())
+  }
+  // home
+  if (nextEntityState.path == "/home" || nextEntityState.path == "/") {
+    match<StateType["home"]["tag"], void>(nextEntityState.home.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_HOME }))
+      .with("loading", () => {
+        localStorage.setItem("inputValue", nextEntityState.home.inputValue)
+        if (timeoutId != null) {
+          clearTimeout(timeoutId)
+        }
+
+        timeoutId = setTimeout(() => {
+          const skip = skipDataPagination(nextEntityState.home.page)
+          ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
+            .then((res) => res.json())
+            .then((data) => {
+              sendAction({
+                type: ActionTypeEnum.FETCH_HOME_SUCCESS,
+                payload: {
+                  products: data.products,
+                  totalData: data.total
+                }
+              })
+            })
+            .catch((err) =>
+              sendAction({
+                type: ActionTypeEnum.FETCH_HOME_ERROR,
+                payload: { errorMessage: err.message }
+              })
+            )
+        }, 500)
+      })
+      .with("changing-page", () => {
+        const skip = skipDataPagination(nextEntityState.home.page)
+        ListProduct({ limit: constData.limit, skip, search: state.home.inputValue })
+          .then((res) => res.json())
+          .then((data) => {
+            sendAction({
+              type: ActionTypeEnum.CHANGE_PAGE_SUCCESS,
+              payload: {
+                products: data.products
+              }
+            })
+          })
+          .catch((err) =>
+            sendAction({
+              type: ActionTypeEnum.CHANGE_PAGE_ERROR,
+              payload: { errorMessage: err.message }
+            })
+          )
+      })
+      .otherwise(() => { })
+  }
+  // favorite
+  if (nextEntityState.path == "/favorite") {
+    match<StateType["favorite"]["tag"], void>(nextEntityState.favorite.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_FAVORITE }))
+      .with("loading", () => {
+        const fetchPromises = state.favorite.favoriteIds.map(id => FindProductById({ id })
+          .then(res => res.json())
+          .catch((err) =>
+            sendAction({
+              type: ActionTypeEnum.FETCH_FAVORITE_ERROR,
+              payload: { errorMessage: err.message }
+            })
+          )
+        )
+        Promise.all(fetchPromises)
+          .then(res => {
+            sendAction({
+              type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS,
+              payload: { products: res }
+            })
+          }).catch(err => sendAction({
+            type: ActionTypeEnum.FETCH_FAVORITE_ERROR,
+            payload: { errorMessage: err.message }
+          }))
+      })
+      .otherwise(() => { })
+  }
+  // detail
+  if (nextEntityState.path == "/detail") {
+    match<StateType["detail"]["tag"], void>(nextEntityState.detail.tag)
+      .with("idle", () => sendAction({ type: ActionTypeEnum.FETCH_DETAIL }))
+      .with("loading", () => {
+        if (state.query.id)
+          FindProductById({ id: Number(state.query.id) })
+            .then((res) => res.json())
+            .then((product) => {
+              sendAction({
+                type: ActionTypeEnum.FETCH_DETAIL_SUCCESS,
+                payload: { product }
+              })
+            })
+            .catch(err => sendAction({
+              type: ActionTypeEnum.FETCH_DETAIL_ERROR,
+              payload: { errorMessage: err.message }
+            }))
+        else
+          sendAction({
+            type: ActionTypeEnum.FETCH_DETAIL_ERROR,
+            payload: { errorMessage: "Masukin product_id woi!" }
+          })
+      })
+      .otherwise(() => { })
   }
 }

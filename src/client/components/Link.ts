@@ -1,8 +1,8 @@
-import { setState } from "../state/index"
+import { sendAction, ActionTypeEnum } from "../reducer"
+
 type LinkPropsType = {
   href: string
   label: string
-  onClick?: () => void
 }
 
 const Link = (props: LinkPropsType) => {
@@ -13,8 +13,13 @@ const Link = (props: LinkPropsType) => {
     event.preventDefault()
     if (event.target instanceof HTMLAnchorElement) {
       const url = new URL(event.target.href)
-      setState({ path: url.pathname })
-      props.onClick && props.onClick()
+      const urlParams = new URLSearchParams(url.search.split('?')[1])
+      const query: Record<string, string> = {}
+      urlParams.forEach((value, key) => {
+        query[key] = value
+      })
+
+      sendAction({ type: ActionTypeEnum.NAVIGATE, payload: { path: url.pathname, query } })
     }
   }
 

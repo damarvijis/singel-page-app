@@ -1,4 +1,5 @@
-import { setState, state } from "../state/index"
+import { state } from "../state/index"
+import { sendAction, ActionTypeEnum } from "../reducer"
 
 const SearchProduct = () => {
   const div = document.createElement("div")
@@ -9,7 +10,10 @@ const SearchProduct = () => {
   input.placeholder = "enter product name"
   input.oninput = (event) => {
     if (event.target instanceof HTMLInputElement) {
-      setState({ home: { ...state.home, inputValue: event.target.value } })
+      sendAction({
+        type: ActionTypeEnum.CHANGE_INPUT,
+        payload: { inputValue: event.target.value }
+      })
     }
   }
 

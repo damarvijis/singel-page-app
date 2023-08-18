@@ -1,6 +1,6 @@
-import { state, setState } from "../state/index"
+import { state, ProductType } from "../state/index"
 import Link from "./Link"
-import { ProductType } from "../state/index"
+import { sendAction, ActionTypeEnum } from "../reducer"
 
 const ProductItem = (props: ProductType) => {
   const div = document.createElement("div")
@@ -24,24 +24,15 @@ const ProductItem = (props: ProductType) => {
   const buttonFavorite = document.createElement("button")
   buttonFavorite.textContent = isFavorite ? "Delete from favorite" : "Add to favorite"
   buttonFavorite.onclick = () => {
-    if (isFavorite) {
-      const newData = state.favorite.favoriteIds.filter((id) => id != props.id)
-      setState({ favorite: { ...state.favorite, favoriteIds: newData } })
-
-      if (state.path == "/favorite") {
-        setState({ favorite: { ...state.favorite, isLoading: true } })
-      }
-    } else {
-      setState({ favorite: { ...state.favorite, favoriteIds: [...state.favorite.favoriteIds, props.id] } })
-    }
+    sendAction({
+      type: ActionTypeEnum.TOGGLE_FAVORITE,
+      payload: { id: props.id }
+    })
   }
 
   const linkDetail = Link({
-    href: "/detail",
-    label: "See Detail " + props.title,
-    onClick: () => {
-      setState({ detail: { ...state.detail, productId: props.id } })
-    }
+    href: "/detail?id=" + props.id,
+    label: "See Detail " + props.title
   })
 
   div.append(image)
