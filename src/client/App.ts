@@ -1,8 +1,9 @@
-import { state } from "./state/index"
+import { state, StateType } from "./state/index"
 import Navbar from "./components/Navbar"
 import HomePage from "./pages/HomePage"
 import FavoritePage from "./pages/FavoritePage"
 import DetailPage from "./pages/DetailPage"
+import { match } from "ts-pattern"
 
 const App = () => {
   const div = document.createElement("div")
@@ -11,19 +12,20 @@ const App = () => {
   const favoriteContent = FavoritePage()
   const detailContent = DetailPage()
 
-  if (!state.path.includes("/detail")) {
-    div.append(navbar)
-  }
-
-  if (state.path == "/home") {
-    div.append(homeContent)
-  } else if (state.path == "/favorite") {
-    div.append(favoriteContent)
-  } else if (state.path.includes("/detail")) {
-    div.append(detailContent)
-  } else {
-    div.append(homeContent)
-  }
+  match<StateType["path"], void>(state.path)
+    .with("/home", () => {
+      div.append(navbar)
+      div.append(homeContent)
+    })
+    .with("/favorite", () => {
+      div.append(navbar)
+      div.append(favoriteContent)
+    })
+    .with("/detail", () => div.append(detailContent))
+    .otherwise(() => {
+      div.append(navbar)
+      div.append(homeContent)
+    })
 
   return div
 }

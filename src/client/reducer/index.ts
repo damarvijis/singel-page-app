@@ -170,334 +170,265 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
    Semua Logic taro di reducer
   */
   // Home
-  // return match<[StateType, ActionType], StateType>([prevState, action])
-  //   .with([{ favorite: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_FAVORITE }], ([prevState, action]) =>
-  //   ({
-  //     ...prevState, favorite: {
-  //       ...prevState.favorite,
-  //       products: [],
-  //       tag: "loading",
-  //       errorMessage: ""
-  //     }
-  //   }))
-  //   .otherwise(() => prevState)
-  switch (prevState.home.tag) {
-    case "idle":
-      switch (action.type) {
-        case ActionTypeEnum.FETCH_HOME:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              errorMessage: ""
-            }
-          }
+  return match<[StateType, ActionType], StateType>([prevState, action])
+    // Home
+    .with([{ home: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        errorMessage: ""
       }
-    case "loading": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_INPUT:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              page: 1,
-              inputValue: action.payload.inputValue
-            }
-          }
-        case ActionTypeEnum.FETCH_HOME_SUCCESS:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              products: action.payload.products,
-              totalData: action.payload.totalData,
-              tag: action.payload.products.length == 0 ? "empty" : "success",
-              errorMessage: ""
-            }
-          }
-        case ActionTypeEnum.FETCH_HOME_ERROR:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              errorMessage: action.payload.errorMessage,
-              products: [],
-              tag: "error",
-            }
-          }
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: 1,
+        inputValue: action.payload.inputValue
       }
-    }
-    case "success": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_PAGE:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              page: action.payload.page,
-              tag: "changing-page"
-            }
-          }
-        case ActionTypeEnum.CHANGE_INPUT:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              page: 1,
-              tag: "loading",
-              inputValue: action.payload.inputValue
-            }
-          }
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_HOME_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: action.payload.products,
+        totalData: action.payload.totalData,
+        tag: action.payload.products.length == 0 ? "empty" : "success",
+        errorMessage: ""
       }
-    }
-    case "changing-page": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_PAGE_SUCCESS:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              products: action.payload.products,
-              tag: "success"
-            }
-          }
-        case ActionTypeEnum.CHANGE_PAGE_ERROR:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              products: [],
-              errorMessage: action.payload.errorMessage,
-              tag: "changing-page-error"
-            }
-          }
+    }))
+    .with([{ home: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_HOME_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        errorMessage: action.payload.errorMessage,
+        products: [],
+        tag: "error",
       }
-    }
-    case "empty": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_INPUT:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              page: 1,
-              inputValue: action.payload.inputValue
-            }
-          }
+    }))
+    .with([{ home: { tag: "success" } }, { type: ActionTypeEnum.CHANGE_PAGE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: action.payload.page,
+        tag: "changing-page"
       }
-    }
-    case "error": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_INPUT:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              page: 1,
-              inputValue: action.payload.inputValue
-            }
-          }
-        case ActionTypeEnum.REFETCH_HOME:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading"
-            }
-          }
+    }))
+    .with([{ home: { tag: "success" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: 1,
+        tag: "loading",
+        inputValue: action.payload.inputValue
       }
-    }
-    case "changing-page-error": {
-      switch (action.type) {
-        case ActionTypeEnum.CHANGE_INPUT:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              tag: "loading",
-              page: 1,
-              inputValue: action.payload.inputValue
-            }
-          }
-        case ActionTypeEnum.RECHANGE_PAGE:
-          return {
-            ...prevState,
-            home: {
-              ...prevState.home,
-              page: action.payload.page,
-              tag: "changing-page"
-            }
-          }
+    }))
+    .with([{ home: { tag: "changing-page" } }, { type: ActionTypeEnum.CHANGE_PAGE_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: action.payload.products,
+        tag: "success"
       }
-    }
-  }
-  // Favorite
-  switch (prevState.favorite.tag) {
-    case "idle":
-      switch (action.type) {
-        case ActionTypeEnum.FETCH_FAVORITE:
-          return {
-            ...prevState,
-            favorite: {
-              ...prevState.favorite,
-              products: [],
-              tag: "loading",
-              errorMessage: ""
-            }
-          }
+    }))
+    .with([{ home: { tag: "changing-page" } }, { type: ActionTypeEnum.CHANGE_PAGE_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        products: [],
+        errorMessage: action.payload.errorMessage,
+        tag: "changing-page-error"
       }
-    case "loading": {
-      switch (action.type) {
-        case ActionTypeEnum.FETCH_FAVORITE_SUCCESS:
-          return {
-            ...prevState,
-            favorite: {
-              ...prevState.favorite,
-              products: action.payload.products,
-              tag: action.payload.products.length == 0 ? "empty" : "success",
-              errorMessage: ""
-            }
-          }
-        case ActionTypeEnum.FETCH_FAVORITE_ERROR:
-          return {
-            ...prevState,
-            favorite: {
-              ...prevState.favorite,
-              products: [],
-              tag: "error",
-              errorMessage: action.payload.errorMessage
-            }
-          }
+    }))
+    .with([{ home: { tag: "empty" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
       }
-    }
-    case "success": {
-      switch (action.type) {
-        case ActionTypeEnum.TOGGLE_FAVORITE:
-          const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
-          const newFavoriteIds = isFavorite ? state.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...state.favorite.favoriteIds, action.payload.id]
-          return {
-            ...prevState,
-            favorite: {
-              ...prevState.favorite,
-              products: [],
-              favoriteIds: newFavoriteIds,
-              tag: "loading",
-              errorMessage: ""
-            }
-          }
+    }))
+    .with([{ home: { tag: "error" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
       }
-    }
-    case "error": {
-      switch (action.type) {
-        case ActionTypeEnum.REFETCH_FAVORITE:
-          return {
-            ...prevState,
-            favorite: {
-              ...prevState.favorite,
-              tag: "loading"
-            }
-          }
+    }))
+    .with([{ home: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading"
       }
-    }
-  }
-  // Detail
-  switch (prevState.detail.tag) {
-    case "idle":
-      switch (action.type) {
-        case ActionTypeEnum.FETCH_DETAIL:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              tag: "loading"
-            }
-          }
+    }))
+    .with([{ home: { tag: "changing-page-error" } }, { type: ActionTypeEnum.RECHANGE_PAGE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        page: action.payload.page,
+        tag: "changing-page"
       }
-    case "loading": {
-      switch (action.type) {
-        case ActionTypeEnum.FETCH_DETAIL_SUCCESS:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              product: action.payload.product,
-              tag: "success",
-              errorMessage: ""
-            }
-          }
-        case ActionTypeEnum.FETCH_DETAIL_ERROR:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              product: null,
-              tag: "error",
-              errorMessage: action.payload.errorMessage
-            }
-          }
+    }))
+    .with([{ home: { tag: "changing-page-error" } }, { type: ActionTypeEnum.CHANGE_INPUT }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "loading",
+        page: 1,
+        inputValue: action.payload.inputValue
       }
-    }
-    case "error": {
-      switch (action.type) {
-        case ActionTypeEnum.REFETCH_DETAIL:
-          return {
-            ...prevState,
-            detail: {
-              ...prevState.detail,
-              tag: "loading"
-            }
-          }
+    }))
+    // Favorite
+    .with([{ favorite: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: [],
+        tag: "loading",
+        errorMessage: ""
       }
-    }
-  }
-  // Khusus Global Action
-  switch (action.type) {
-    // reset screen state
-    case ActionTypeEnum.RESET_HOME:
-      return {
-        ...prevState,
-        home: {
-          ...prevState.home,
-          tag: "idle",
-          page: 1,
-          inputValue: "",
-          products: [],
-          errorMessage: "",
-          totalData: 0
-        }
+    }))
+    .with([{ favorite: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_FAVORITE_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: action.payload.products,
+        tag: action.payload.products.length == 0 ? "empty" : "success",
+        errorMessage: ""
       }
-    case ActionTypeEnum.RESET_DETAIL:
-      return {
-        ...prevState,
-        detail: {
-          ...prevState.detail,
-          tag: "idle",
-          product: null,
-          errorMessage: "",
-        }
+    }))
+    .with([{ favorite: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_FAVORITE_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        products: [],
+        tag: "error",
+        errorMessage: action.payload.errorMessage
       }
-    case ActionTypeEnum.RESET_FAVORITE:
+    }))
+    .with([{ favorite: { tag: "success" } }, { type: ActionTypeEnum.TOGGLE_FAVORITE }], ([prevState, action]) => {
+      const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
+      const newFavoriteIds = isFavorite ? prevState.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...prevState.favorite.favoriteIds, action.payload.id]
       return {
         ...prevState,
         favorite: {
           ...prevState.favorite,
-          tag: "idle",
           products: [],
+          favoriteIds: newFavoriteIds,
+          tag: "loading",
           errorMessage: ""
         }
       }
-    case ActionTypeEnum.NAVIGATE:
-      return {
-        ...prevState,
-        path: action.payload.path,
-        query: action.payload.query
+    })
+    .with([{ favorite: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        tag: "loading"
       }
-    case ActionTypeEnum.TOGGLE_FAVORITE:
+    }))
+    // Detail
+    .with([{ detail: { tag: "idle" } }, { type: ActionTypeEnum.FETCH_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "loading"
+      }
+    }))
+    .with([{ detail: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_DETAIL_SUCCESS }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        product: action.payload.product,
+        tag: "success",
+        errorMessage: ""
+      }
+    }))
+    .with([{ detail: { tag: "loading" } }, { type: ActionTypeEnum.FETCH_DETAIL_ERROR }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        product: null,
+        tag: "error",
+        errorMessage: action.payload.errorMessage
+      }
+    }))
+    .with([{ detail: { tag: "error" } }, { type: ActionTypeEnum.REFETCH_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "loading"
+      }
+    }))
+    // Global Action
+    .with([{}, { type: ActionTypeEnum.RESET_HOME }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      home: {
+        ...prevState.home,
+        tag: "idle",
+        page: 1,
+        inputValue: "",
+        products: [],
+        errorMessage: "",
+        totalData: 0
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.RESET_DETAIL }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      detail: {
+        ...prevState.detail,
+        tag: "idle",
+        product: null,
+        errorMessage: "",
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.RESET_FAVORITE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      favorite: {
+        ...prevState.favorite,
+        tag: "idle",
+        products: [],
+        errorMessage: ""
+      }
+    }))
+    .with([{}, { type: ActionTypeEnum.NAVIGATE }], ([prevState, action]) =>
+    ({
+      ...prevState,
+      path: action.payload.path,
+      query: action.payload.query
+    }))
+    .with([{}, { type: ActionTypeEnum.TOGGLE_FAVORITE }], ([prevState, action]) => {
       const isFavorite = prevState.favorite.favoriteIds.some(id => id == action.payload.id)
-      const newFavoriteIds = isFavorite ? state.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...state.favorite.favoriteIds, action.payload.id]
+      const newFavoriteIds = isFavorite ? prevState.favorite.favoriteIds.filter((id) => id != action.payload.id) : [...prevState.favorite.favoriteIds, action.payload.id]
       return {
         ...prevState,
         favorite: {
@@ -505,9 +436,8 @@ const reducer = (prevState: StateType, action: ActionType): StateType => {
           favoriteIds: newFavoriteIds
         }
       }
-    default:
-      return prevState
-  }
+    })
+    .otherwise(() => prevState)
 }
 
 export const sendAction = (action: ActionType) => {

@@ -2,7 +2,8 @@ import ProductList from "../components/ProductList"
 import SearchProduct from "../components/SearchProduct"
 import Pagination from "../components/Pagination"
 import { sendAction, ActionTypeEnum } from "../reducer"
-import { state } from "../state"
+import { state, StateType } from "../state"
+import { match } from "ts-pattern"
 
 const HomePage = () => {
   const div = document.createElement("div")
@@ -36,22 +37,22 @@ const HomePage = () => {
   div.append(searchProduct)
   div.append(title)
 
-  if (state.home.tag == "loading" || state.home.tag == "changing-page") {
-    div.append(loadingText)
-  } else if (state.home.tag == "error") {
-    div.append(errorText)
-    div.append(buttonRefetch)
-  } else if (state.home.tag == "empty") {
-    div.append(emptyText)
-  } else if (state.home.tag == "success") {
-    div.append(productList)
-    div.append(pagination)
-  } else if (state.home.tag == "changing-page-error") {
-    div.append(errorText)
-    div.append(pagination)
-  } else {
-    // page 404
-  }
+  match<StateType["home"]["tag"], void>(state.home.tag)
+    .with("loading" || "changing-page", () => div.append(loadingText))
+    .with("empty", () => div.append(emptyText))
+    .with("error", () => {
+      div.append(errorText)
+      div.append(buttonRefetch)
+    })
+    .with("changing-page-error", () => {
+      div.append(errorText)
+      div.append(pagination)
+    })
+    .with("success", () => {
+      div.append(productList)
+      div.append(pagination)
+    })
+    .otherwise(() => { })
 
   return div
 }
