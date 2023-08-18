@@ -1,7 +1,6 @@
-import { sendAction, ActionTypeEnum } from "../reducer"
-import { constData } from "../const"
+import { constData } from "../internal/const"
 
-const Pagination = (currentPage: number, totalData: number, actionType: ActionTypeEnum.CHANGE_PAGE | ActionTypeEnum.RECHANGE_PAGE) => {
+const Pagination = (currentPage: number, totalData: number, action: (page: number) => void) => {
   const div = document.createElement("div")
   div.style.display = "flex"
   div.style.flexDirection = "row"
@@ -17,10 +16,7 @@ const Pagination = (currentPage: number, totalData: number, actionType: ActionTy
       button.style.backgroundColor = "red"
     }
     button.textContent = i.toString()
-    button.onclick = () => sendAction({
-      type: actionType,
-      payload: { page: i }
-    })
+    button.onclick = () => action(i)
     pages.push(button)
   }
 

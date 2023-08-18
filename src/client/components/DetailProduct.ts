@@ -1,4 +1,4 @@
-import { ProductType } from "../state"
+import { ProductType } from "../internal/type"
 
 const DetailProduct = (props: ProductType) => {
   const div = document.createElement("div")
