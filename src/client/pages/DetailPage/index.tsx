@@ -9,13 +9,11 @@ type DetailPagePropsType = {
 
 const DetailPage = (props: DetailPagePropsType) => {
   const { state, send } = useDetailReducer(props)
-  const content = DetailContent({
-    ...props,
-    send,
-    state
-  })
-
-  return content
+  return <DetailContent
+    {...props}
+    state={state}
+    send={send}
+  />
 }
 
 export default DetailPage

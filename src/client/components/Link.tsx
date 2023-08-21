@@ -4,11 +4,9 @@ type LinkPropsType = {
   onClick: (query: Record<string, string>) => void
 }
 
-const Link = (props: LinkPropsType) => {
-  const link = document.createElement('a')
-  link.href = props.href
-  link.textContent = props.label
-  link.onclick = (event) => {
+const Link = (props: LinkPropsType) => (<a
+  href={props.href}
+  onClick={event => {
     event.preventDefault()
     if (event.target instanceof HTMLAnchorElement) {
       const url = new URL(event.target.href)
@@ -19,9 +17,9 @@ const Link = (props: LinkPropsType) => {
       })
       props.onClick(query)
     }
-  }
-
-  return link
-}
+  }}>
+  {props.label}
+</a>
+)
 
 export default Link

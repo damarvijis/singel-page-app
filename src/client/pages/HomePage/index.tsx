@@ -10,13 +10,8 @@ type HomePagePropsType = {
 
 const HomePage = (props: HomePagePropsType) => {
   const { state, send } = useHomeReducer(props)
-  const content = HomeContent({
-    ...props,
-    send,
-    state
-  })
 
-  return content
+  return <HomeContent {...props} state={state} send={send} />
 }
 
 export default HomePage

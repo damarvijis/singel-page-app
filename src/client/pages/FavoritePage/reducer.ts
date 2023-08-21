@@ -1,6 +1,6 @@
 import { match } from "ts-pattern"
 import { ProductType } from "../../internal/type"
-import { React } from "../../React"
+import { useReducer, useEffect } from "react"
 import { FindProductById } from "../../internal/http"
 
 type FavoriteReducerPropsType = {
@@ -117,11 +117,11 @@ const onChangeState = ({ state, send, favoriteIds, onToggleFavorite }: OnChangeS
 }
 
 export const useFavoriteReducer = (props: FavoriteReducerPropsType) => {
-  const [state, send] = React.useReducer(reducer, {
+  const [state, send] = useReducer(reducer, {
     tag: "idle"
   })
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (props.path != "/favorite") {
       state.tag != "idle" && send({ type: "RESET_FAVORITE" })
     } else {

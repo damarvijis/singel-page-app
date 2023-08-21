@@ -10,13 +10,11 @@ type FavoritePagePropsType = {
 
 const FavoritePage = (props: FavoritePagePropsType) => {
   const { state, send } = useFavoriteReducer(props)
-  const content = FavoriteContent({
-    ...props,
-    send,
-    state
-  })
-
-  return content
+  return <FavoriteContent
+    {...props}
+    send={send}
+    state={state}
+  />
 }
 
 export default FavoritePage
