@@ -1,8 +1,7 @@
-import { sendAction, ActionTypeEnum } from "../reducer"
-
 type LinkPropsType = {
   href: string
   label: string
+  onClick: (query: Record<string, string>) => void
 }
 
 const Link = (props: LinkPropsType) => {
@@ -18,8 +17,7 @@ const Link = (props: LinkPropsType) => {
       urlParams.forEach((value, key) => {
         query[key] = value
       })
-
-      sendAction({ type: ActionTypeEnum.NAVIGATE, payload: { path: url.pathname, query } })
+      props.onClick(query)
     }
   }
 

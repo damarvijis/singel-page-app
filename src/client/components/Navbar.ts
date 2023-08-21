@@ -1,8 +1,22 @@
 import Link from "./Link"
 
-const Navbar = () => {
-  const linkHome = Link({ href: "/home", label: "Home" })
-  const linkFavorite = Link({ href: "/favorite", label: "Favorite" })
+type NavbarPropsType = {
+  onClickHome: (query: Record<string, string>) => void
+  onClickFavorite: (query: Record<string, string>) => void
+}
+
+const Navbar = (props: NavbarPropsType) => {
+  const linkHome = Link({
+    href: "/home",
+    label: "Home",
+    onClick: props.onClickHome,
+  })
+
+  const linkFavorite = Link({
+    href: "/favorite",
+    label: "Favorite",
+    onClick: props.onClickFavorite,
+  })
 
   const navbar = document.createElement("div")
   navbar.style.display = "flex"

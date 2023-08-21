@@ -1,8 +1,19 @@
-import { state, ProductType } from "../state/index"
+import { ProductType } from "../internal/type"
 import Link from "./Link"
-import { sendAction, ActionTypeEnum } from "../reducer"
 
-const ProductItem = (props: ProductType) => {
+type ProductItemPropsType = {
+  product: ProductType
+  onClickDetail: (query: Record<string, string>) => void
+  onToggleFavorite: (id: number) => void
+  isFavorite: boolean
+}
+
+const ProductItem = ({
+  product,
+  onClickDetail,
+  onToggleFavorite,
+  isFavorite,
+}: ProductItemPropsType) => {
   const div = document.createElement("div")
   div.style.display = "flex"
   div.style.flexDirection = "column"
@@ -10,29 +21,24 @@ const ProductItem = (props: ProductType) => {
   div.style.alignItems = "center"
 
   const image = document.createElement("img")
-  image.src = props.thumbnail
+  image.src = product.thumbnail
   image.style.width = "80px"
   image.style.height = "100px"
 
   const title = document.createElement("h5")
-  title.textContent = props.title
+  title.textContent = product.title
 
   const descriptionText = document.createElement("p")
-  descriptionText.textContent = props.description
+  descriptionText.textContent = product.description
 
-  const isFavorite = state.favorite.favoriteIds.some(id => id == props.id)
   const buttonFavorite = document.createElement("button")
   buttonFavorite.textContent = isFavorite ? "Delete from favorite" : "Add to favorite"
-  buttonFavorite.onclick = () => {
-    sendAction({
-      type: ActionTypeEnum.TOGGLE_FAVORITE,
-      payload: { id: props.id }
-    })
-  }
+  buttonFavorite.onclick = () => onToggleFavorite(product.id)
 
   const linkDetail = Link({
-    href: "/detail?id=" + props.id,
-    label: "See Detail " + props.title
+    href: "/detail?id=" + product.id,
+    label: "See Detail " + product.title,
+    onClick: onClickDetail,
   })
 
   div.append(image)
