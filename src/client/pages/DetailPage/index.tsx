@@ -1,15 +1,15 @@
 import DetailContent from "./content"
 import { useDetailReducer } from "./reducer"
+import { AppContext } from "../../context"
+import { useContext } from "react"
 
-type DetailPagePropsType = {
-  onClickHome: (query: Record<string, string>) => void
-  query: Record<string, string>
-}
 
-const DetailPage = (props: DetailPagePropsType) => {
-  const { state, send } = useDetailReducer(props)
+const DetailPage = () => {
+  const { query, onClickHome } = useContext(AppContext)
+
+  const { state, send } = useDetailReducer({ query })
   return <DetailContent
-    {...props}
+    onClickHome={onClickHome}
     state={state}
     send={send}
   />

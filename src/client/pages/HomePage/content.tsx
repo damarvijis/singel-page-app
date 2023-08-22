@@ -5,9 +5,6 @@ import { match } from "ts-pattern"
 import { HomeStateType, HomeActionType } from "./reducer"
 
 type HomeContentPropsType = {
-  onClickDetail: (query: Record<string, string>) => void
-  favoriteIds: number[]
-  onToggleFavorite: (value: number) => void
   send: (action: HomeActionType) => void
   state: HomeStateType
 }
@@ -15,9 +12,6 @@ type HomeContentPropsType = {
 const HomeContent = ({
   state,
   send,
-  onToggleFavorite,
-  favoriteIds,
-  onClickDetail
 }: HomeContentPropsType) => {
   const actionChangePage = (page: number) => {
     send({
@@ -64,12 +58,7 @@ const HomeContent = ({
           )
           .with("success", () =>
             <div>
-              <ProductList
-                products={state.products}
-                onClickDetail={onClickDetail}
-                onToggleFavorite={onToggleFavorite}
-                favoriteIds={favoriteIds}
-              />
+              <ProductList products={state.products} />
               <Pagination
                 currentPage={state.page}
                 totalData={state.totalData}

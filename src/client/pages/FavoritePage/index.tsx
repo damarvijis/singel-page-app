@@ -1,16 +1,17 @@
 import FavoriteContent from "./content"
 import { useFavoriteReducer } from "./reducer"
+import { AppContext } from "../../context"
+import { useContext } from "react"
 
-type FavoritePagePropsType = {
-  onClickDetail: (query: Record<string, string>) => void
-  favoriteIds: number[]
-  onToggleFavorite: (id: number) => void
-}
+const FavoritePage = () => {
+  const { favoriteIds, onToggleFavorite } = useContext(AppContext)
 
-const FavoritePage = (props: FavoritePagePropsType) => {
-  const { state, send } = useFavoriteReducer(props)
+  const { state, send } = useFavoriteReducer({
+    favoriteIds,
+    onToggleFavorite,
+  })
+
   return <FavoriteContent
-    {...props}
     send={send}
     state={state}
   />

@@ -4,6 +4,7 @@ import FavoritePage from "./pages/FavoritePage/index"
 import DetailPage from "./pages/DetailPage/index"
 import { match } from "ts-pattern"
 import { useState, useEffect } from "react"
+import { AppContext } from "./context"
 
 const App = () => {
   const favoriteIds = localStorage.getItem("favoriteIds")
@@ -13,7 +14,7 @@ const App = () => {
     query: {}
   })
 
-  const toggleFavoriteIds = (tagetId: number) => {
+  const onToggleFavorite = (tagetId: number) => {
     const isFavorite = favIds.some(id => id == tagetId)
     const newFavoriteIds = isFavorite ? favIds.filter((id) => id != tagetId) : [...favIds, tagetId]
     setFavIds(newFavoriteIds)
@@ -40,50 +41,49 @@ const App = () => {
   }, [favIds])
 
   return (
-    <div>
-      {
-        match(url.path)
-          .with("/home", () =>
-            <>
-              <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
-              <HomePage
-                onToggleFavorite={toggleFavoriteIds}
-                favoriteIds={favIds}
-                onClickDetail={onClickDetail}
-              />
-            </>
-          )
-          .with("/favorite", () =>
-            <>
-              <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
-              <FavoritePage
-                onToggleFavorite={toggleFavoriteIds}
-                onClickDetail={onClickDetail}
-                favoriteIds={favIds}
-              />
-            </>
-          )
-          .with("/detail", () =>
-            <>
-              <DetailPage
-                onClickHome={onClickHome}
-                query={url.query}
-              />
-            </>
-          )
-          .otherwise(() =>
-            <>
-              <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
-              <HomePage
-                onToggleFavorite={toggleFavoriteIds}
-                favoriteIds={favIds}
-                onClickDetail={onClickDetail}
-              />
-            </>
-          )
-      }
-    </div>
+    <AppContext.Provider
+      value={{
+        favoriteIds: favIds,
+        path: url.path,
+        query: url.query,
+        onToggleFavorite,
+        onClickFavorite,
+        onClickHome,
+        onClickDetail
+      }}
+    >
+      <div>
+        {
+          match(url.path)
+            .with("/home", () =>
+              <>
+                <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
+                <HomePage />
+              </>
+            )
+            .with("/favorite", () =>
+              <>
+                <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
+                <FavoritePage />
+              </>
+            )
+            .with("/detail", () => <DetailPage />)
+            .otherwise(() =>
+              <>
+                <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
+                <HomePage />
+              </>
+            )
+        }
+      </div>
+    </AppContext.Provider>
   )
 }
 
 export default App
+
+/*
+app context di app
+onToggleFavorite di page favorite?
+product list & product item boleh panggil context kah?
+*/
