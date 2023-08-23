@@ -2,6 +2,7 @@ import ProductList from "../../components/ProductList"
 import SearchProduct from "../../components/SearchProduct"
 import Pagination from "../../components/Pagination"
 import { match } from "ts-pattern"
+import Navbar from "../../components/Navbar"
 import { HomeStateType, HomeActionType } from "./reducer"
 
 type HomeContentPropsType = {
@@ -22,6 +23,7 @@ const HomeContent = ({
 
   return (
     <div>
+      <Navbar />
       <SearchProduct
         inputValue={state.inputValue}
         onInput={(inputValue) => send({ type: "CHANGE_INPUT", payload: { inputValue } })}

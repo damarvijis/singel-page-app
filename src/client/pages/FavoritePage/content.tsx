@@ -1,5 +1,6 @@
 import ProductList from "../../components/ProductList"
 import { match } from "ts-pattern"
+import Navbar from "../../components/Navbar"
 import { FavoriteActionType, FavoriteStateType } from "./reducer"
 
 type FavoriteContentPropsType = {
@@ -10,6 +11,7 @@ type FavoriteContentPropsType = {
 const FavoriteContent = ({ state, send }: FavoriteContentPropsType) =>
 (
   <div>
+    <Navbar />
     <h5>Favorite Product</h5>
     {
       match(state.tag)

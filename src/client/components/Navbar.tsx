@@ -1,16 +1,16 @@
 import Link from "./Link"
+import { useAppContext } from "../context"
 
-type NavbarPropsType = {
-  onClickHome: (query: Record<string, string>) => void
-  onClickFavorite: (query: Record<string, string>) => void
+const Navbar = () => {
+  const { onSetUrl } = useAppContext()
+
+  return (
+    <div style={{ display: "flex", gap: "10px" }}>
+      <Link href={"/home"} label={"Home"} onClick={onSetUrl} />
+      <Link href={"/favorite"} label={"Favorite"} onClick={onSetUrl} />
+    </div>
+  )
 }
-
-const Navbar = (props: NavbarPropsType) => (
-  <div style={{ display: "flex", gap: "10px" }}>
-    <Link href={"/home"} label={"Home"} onClick={props.onClickHome} />
-    <Link href={"/favorite"} label={"Favorite"} onClick={props.onClickFavorite} />
-  </div>
-)
 
 
 export default Navbar

@@ -1,10 +1,9 @@
 import FavoriteContent from "./content"
 import { useFavoriteReducer } from "./reducer"
-import { AppContext } from "../../context"
-import { useContext } from "react"
+import { useAppContext } from "../../context"
 
 const FavoritePage = () => {
-  const { favoriteIds, onToggleFavorite } = useContext(AppContext)
+  const { favoriteIds, onToggleFavorite } = useAppContext()
 
   const { state, send } = useFavoriteReducer({
     favoriteIds,

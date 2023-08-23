@@ -1,7 +1,6 @@
 import { ProductType } from "../internal/type"
 import Link from "./Link"
-import { AppContext } from "../context"
-import { useContext } from "react"
+import { useAppContext } from "../context"
 
 type ProductItemPropsType = {
   product: ProductType
@@ -14,7 +13,7 @@ const ProductItem = ({
   isFavorite,
   toggleFavorite
 }: ProductItemPropsType) => {
-  const { onToggleFavorite, onClickDetail } = useContext(AppContext)
+  const { onToggleFavorite, onSetUrl } = useAppContext()
 
   return (
     <div
@@ -44,7 +43,7 @@ const ProductItem = ({
       <Link
         href={"/detail?id=" + product.id}
         label={"See Detail " + product.title}
-        onClick={onClickDetail}
+        onClick={onSetUrl}
       />
     </div>
   )

@@ -1,7 +1,6 @@
 import ProductItem from "./ProductItem"
 import { ProductType } from "../internal/type"
-import { AppContext } from "../context"
-import { useContext } from "react"
+import { useAppContext } from "../context"
 
 type ProductListPropsType = {
   products: ProductType[]
@@ -12,7 +11,7 @@ const ProductList = ({
   products,
   onToggleFavorite
 }: ProductListPropsType) => {
-  const { favoriteIds } = useContext(AppContext)
+  const { favoriteIds } = useAppContext()
 
   return (
     <>

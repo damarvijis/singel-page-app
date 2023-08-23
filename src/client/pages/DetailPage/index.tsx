@@ -1,15 +1,14 @@
 import DetailContent from "./content"
 import { useDetailReducer } from "./reducer"
-import { AppContext } from "../../context"
-import { useContext } from "react"
+import { useAppContext } from "../../context"
 
 
 const DetailPage = () => {
-  const { query, onClickHome } = useContext(AppContext)
+  const { url, onSetUrl } = useAppContext()
 
-  const { state, send } = useDetailReducer({ query })
+  const { state, send } = useDetailReducer({ query: url.query })
   return <DetailContent
-    onClickHome={onClickHome}
+    onSetUrl={onSetUrl}
     state={state}
     send={send}
   />
