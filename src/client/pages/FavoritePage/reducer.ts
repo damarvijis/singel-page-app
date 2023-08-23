@@ -6,7 +6,6 @@ import { FindProductById } from "../../internal/http"
 type FavoriteReducerPropsType = {
   favoriteIds: number[]
   onToggleFavorite: (id: number) => void
-  path: string
 }
 
 export type FavoriteStateType =
@@ -122,16 +121,12 @@ export const useFavoriteReducer = (props: FavoriteReducerPropsType) => {
   })
 
   useEffect(() => {
-    if (props.path != "/favorite") {
-      state.tag != "idle" && send({ type: "RESET_FAVORITE" })
-    } else {
-      onChangeState({
-        ...props,
-        send,
-        state
-      })
-    }
-  }, [state, props.favoriteIds, props.path])
+    onChangeState({
+      ...props,
+      send,
+      state
+    })
+  }, [state, props.favoriteIds])
 
   return { state, send }
 }

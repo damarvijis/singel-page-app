@@ -4,7 +4,6 @@ import { useReducer, useEffect } from "react"
 import { FindProductById } from "../../internal/http"
 
 type DetailReducerPropsType = {
-  path: string
   query: Record<string, string>
 }
 
@@ -97,16 +96,12 @@ export const useDetailReducer = (props: DetailReducerPropsType) => {
   })
 
   useEffect(() => {
-    if (!props.path.includes("/detail")) {
-      state.tag != "idle" && send({ type: "RESET_DETAIL" })
-    } else {
-      onChangeState({
-        ...props,
-        send,
-        state
-      })
-    }
-  }, [state, props.query, props.path])
+    onChangeState({
+      ...props,
+      send,
+      state
+    })
+  }, [state, props.query])
 
   return { state, send }
 }

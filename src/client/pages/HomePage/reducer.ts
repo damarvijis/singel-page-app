@@ -5,10 +5,6 @@ import { ProductType } from "../../internal/type"
 import { match } from "ts-pattern"
 import { useReducer, useEffect } from "react"
 
-type HomeReducerPropsType = {
-  path: string
-}
-
 export type HomeStateType = {
   inputValue: string
   products: ProductType[]
@@ -185,7 +181,7 @@ const onChangeState = ({ state, send, }: OnChangeStateParams) => {
     .otherwise(() => { })
 }
 
-export const useHomeReducer = (props: HomeReducerPropsType) => {
+export const useHomeReducer = () => {
   const [state, send] = useReducer(reducer, {
     inputValue: localStorage.getItem("inputValue") ?? "",
     tag: "idle",
@@ -196,16 +192,11 @@ export const useHomeReducer = (props: HomeReducerPropsType) => {
   })
 
   useEffect(() => {
-    if (props.path != "/" && props.path != "/home") {
-      state.tag != "idle" && send({ type: "RESET_HOME" })
-    } else {
-      onChangeState({
-        ...props,
-        send,
-        state
-      })
-    }
-  }, [state.tag, state.inputValue, props.path])
+    onChangeState({
+      send,
+      state
+    })
+  }, [state])
 
   return { state, send }
 }

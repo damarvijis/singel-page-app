@@ -47,7 +47,6 @@ const App = () => {
             <>
               <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
               <HomePage
-                path={url.path}
                 onToggleFavorite={toggleFavoriteIds}
                 favoriteIds={favIds}
                 onClickDetail={onClickDetail}
@@ -58,7 +57,6 @@ const App = () => {
             <>
               <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
               <FavoritePage
-                path={url.path}
                 onToggleFavorite={toggleFavoriteIds}
                 onClickDetail={onClickDetail}
                 favoriteIds={favIds}
@@ -69,7 +67,6 @@ const App = () => {
             <>
               <DetailPage
                 onClickHome={onClickHome}
-                path={url.path}
                 query={url.query}
               />
             </>
@@ -78,7 +75,6 @@ const App = () => {
             <>
               <Navbar onClickHome={onClickHome} onClickFavorite={onClickFavorite} />
               <HomePage
-                path={url.path}
                 onToggleFavorite={toggleFavoriteIds}
                 favoriteIds={favIds}
                 onClickDetail={onClickDetail}

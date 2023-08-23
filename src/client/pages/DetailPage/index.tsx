@@ -3,7 +3,6 @@ import { useDetailReducer } from "./reducer"
 
 type DetailPagePropsType = {
   onClickHome: (query: Record<string, string>) => void
-  path: string
   query: Record<string, string>
 }
 

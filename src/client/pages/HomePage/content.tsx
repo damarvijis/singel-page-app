@@ -35,7 +35,17 @@ const HomeContent = ({
       <h5>List Product</h5>
       {
         match(state.tag)
-          .with("loading" || "changing-page", () => <p>Loading Products...</p>)
+          .with("loading", () => <p>Loading Products...</p>)
+          .with("changing-page", () =>
+            <>
+              <p>Loading Products...</p>
+              <Pagination
+                currentPage={state.page}
+                totalData={state.totalData}
+                action={actionChangePage}
+              />
+            </>
+          )
           .with("error", () =>
             <div>
               <p>{state.errorMessage}</p>

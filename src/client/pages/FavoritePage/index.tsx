@@ -5,7 +5,6 @@ type FavoritePagePropsType = {
   onClickDetail: (query: Record<string, string>) => void
   favoriteIds: number[]
   onToggleFavorite: (id: number) => void
-  path: string
 }
 
 const FavoritePage = (props: FavoritePagePropsType) => {
