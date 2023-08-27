@@ -6,6 +6,8 @@ type URLType = {
 }
 
 type AppContextType = {
+  isDark: boolean
+  onSetIsDark: (value: boolean) => void
   favoriteIds: number[]
   onToggleFavorite: (tagetId: number) => void
   url: URLType
@@ -13,6 +15,8 @@ type AppContextType = {
 }
 
 export const AppContext = createContext<AppContextType>({
+  isDark: false,
+  onSetIsDark: (value) => value,
   favoriteIds: [],
   onToggleFavorite: (targetId) => targetId,
   url: {
@@ -36,21 +40,23 @@ export const Route = (props: RoutePropsType) => {
   return null
 }
 
-// type AppProviderPropsType = {
-//   children: (appCtx: AppContextType) => ReactNode
-// }
-
 type AppProviderPropsType = {
-  children: ReactNode
+  children: (appCtx: AppContextType) => ReactNode
 }
+
+// type AppProviderPropsType = {
+//   children: ReactNode
+// }
 
 export const AppProvider = (props: AppProviderPropsType) => {
   const favoriteIds = localStorage.getItem("favoriteIds")
   const [favIds, setFavIds] = useState<number[]>(favoriteIds ? JSON.parse(favoriteIds) : [])
+  const [isDark, setIsDark] = useState<boolean>(false)
   const [url, setUrl] = useState<{ path: string, query: Record<string, string> }>({
     path: window.location.pathname,
     query: {}
   })
+
 
   const onToggleFavorite = (tagetId: number) => {
     const isFavorite = favIds.some(id => id == tagetId)
@@ -59,6 +65,7 @@ export const AppProvider = (props: AppProviderPropsType) => {
   }
 
   const onSetUrl = (path: string, query: Record<string, string>) => setUrl({ path, query })
+  const onSetIsDark = (value: boolean) => setIsDark(value)
 
   useEffect(() => {
     const windowUrl = new URL(window.location.href)
@@ -83,16 +90,20 @@ export const AppProvider = (props: AppProviderPropsType) => {
         favoriteIds: favIds,
         url,
         onToggleFavorite,
-        onSetUrl
+        onSetUrl,
+        onSetIsDark,
+        isDark
       }}
     >
-      {props.children}
-      {/* {props.children({
+      {/* {props.children} */}
+      {props.children({
         favoriteIds: favIds,
         url,
         onToggleFavorite,
-        onSetUrl
-      })} */}
+        onSetUrl,
+        onSetIsDark,
+        isDark
+      })}
     </AppContext.Provider>
   )
 }

@@ -6,10 +6,12 @@ import { AppProvider, Route } from "./context"
 
 const App = () => (
   <AppProvider>
-    {/* {(ctx) => {
+    {(ctx) => {
       const { url } = ctx
       return (
-        <div>
+        <div style={ctx.isDark ? { backgroundColor: "#808080" } : {}}>
+          <h1>{ctx.isDark ? "🌙" : "🌞"}</h1>
+          <button onClick={() => ctx.onSetIsDark(!ctx.isDark)}>Toggle Theme</button>
           {
             match(url.path)
               .with("/home", () => <HomePage />)
@@ -19,8 +21,8 @@ const App = () => (
           }
         </div>
       )
-    }} */}
-    <Route path="/">
+    }}
+    {/* <Route path="/">
       <HomePage />
     </Route>
     <Route path="/home">
@@ -31,7 +33,7 @@ const App = () => (
     </Route>
     <Route path="/detail">
       <DetailPage />
-    </Route>
+    </Route> */}
   </AppProvider>
 )
 
