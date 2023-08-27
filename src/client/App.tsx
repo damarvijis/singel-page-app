@@ -1,4 +1,3 @@
-import Navbar from "./components/Navbar"
 import HomePage from "./pages/HomePage/index"
 import FavoritePage from "./pages/FavoritePage/index"
 import DetailPage from "./pages/DetailPage/index"
