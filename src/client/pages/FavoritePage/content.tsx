@@ -15,7 +15,7 @@ const FavoriteContent = ({ state, send }: FavoriteContentPropsType) =>
     <h5>Favorite Product</h5>
     {
       match(state.tag)
-        .with("loading" || "changing-page", () => <p>Loading Products...</p>)
+        .with("loading", () => <p>Loading Products...</p>)
         .with("error", () =>
           <div>
             <p>
