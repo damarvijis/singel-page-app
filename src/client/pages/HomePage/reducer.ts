@@ -3,11 +3,7 @@ import { skipDataPagination } from "../../utils/index"
 import { ListProduct } from "../../internal/http"
 import { ProductType } from "../../internal/type"
 import { match } from "ts-pattern"
-import { React } from "../../React"
-
-type HomeReducerPropsType = {
-  path: string
-}
+import { useReducer, useEffect } from "react"
 
 export type HomeStateType = {
   inputValue: string
@@ -185,8 +181,8 @@ const onChangeState = ({ state, send, }: OnChangeStateParams) => {
     .otherwise(() => { })
 }
 
-export const useHomeReducer = (props: HomeReducerPropsType) => {
-  const [state, send] = React.useReducer(reducer, {
+export const useHomeReducer = () => {
+  const [state, send] = useReducer(reducer, {
     inputValue: localStorage.getItem("inputValue") ?? "",
     tag: "idle",
     products: [],
@@ -195,17 +191,12 @@ export const useHomeReducer = (props: HomeReducerPropsType) => {
     totalData: 0
   })
 
-  React.useEffect(() => {
-    if (props.path != "/" && props.path != "/home") {
-      state.tag != "idle" && send({ type: "RESET_HOME" })
-    } else {
-      onChangeState({
-        ...props,
-        send,
-        state
-      })
-    }
-  }, [state.tag, state.inputValue, props.path])
+  useEffect(() => {
+    onChangeState({
+      send,
+      state
+    })
+  }, [state])
 
   return { state, send }
 }

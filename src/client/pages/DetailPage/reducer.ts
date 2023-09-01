@@ -1,10 +1,9 @@
 import { match } from "ts-pattern"
 import { ProductType } from "../../internal/type"
-import { React } from "../../React"
+import { useReducer, useEffect } from "react"
 import { FindProductById } from "../../internal/http"
 
 type DetailReducerPropsType = {
-  path: string
   query: Record<string, string>
 }
 
@@ -90,23 +89,19 @@ const onChangeState = ({ state, send, query }: OnChangeStateParams) => {
 }
 
 export const useDetailReducer = (props: DetailReducerPropsType) => {
-  const [state, send] = React.useReducer(reducer, {
+  const [state, send] = useReducer(reducer, {
     product: null,
     tag: "idle",
     errorMessage: ""
   })
 
-  React.useEffect(() => {
-    if (!props.path.includes("/detail")) {
-      state.tag != "idle" && send({ type: "RESET_DETAIL" })
-    } else {
-      onChangeState({
-        ...props,
-        send,
-        state
-      })
-    }
-  }, [state, props.query, props.path])
+  useEffect(() => {
+    onChangeState({
+      ...props,
+      send,
+      state
+    })
+  }, [state, props.query])
 
   return { state, send }
 }
