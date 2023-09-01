@@ -1,21 +1,21 @@
 import ProductList from "../../components/ProductList"
 import { match } from "ts-pattern"
+import Navbar from "../../components/Navbar"
 import { FavoriteActionType, FavoriteStateType } from "./reducer"
 
 type FavoriteContentPropsType = {
   send: (action: FavoriteActionType) => void
   state: FavoriteStateType
-  favoriteIds: number[]
-  onClickDetail: (query: Record<string, string>) => void
 }
 
-const FavoriteContent = ({ state, send, onClickDetail, favoriteIds }: FavoriteContentPropsType) =>
+const FavoriteContent = ({ state, send }: FavoriteContentPropsType) =>
 (
   <div>
+    <Navbar />
     <h5>Favorite Product</h5>
     {
       match(state.tag)
-        .with("loading" || "changing-page", () => <p>Loading Products...</p>)
+        .with("loading", () => <p>Loading Products...</p>)
         .with("error", () =>
           <div>
             <p>
@@ -37,9 +37,7 @@ const FavoriteContent = ({ state, send, onClickDetail, favoriteIds }: FavoriteCo
                 .with({ tag: "deleting" }, (state) => state.products)
                 .otherwise(() => [])
             }
-            onClickDetail={onClickDetail}
             onToggleFavorite={(id) => send({ type: "DELETE_FAVORITE", payload: { id } })}
-            favoriteIds={favoriteIds}
           />
         )
         .otherwise(() => <p>Page not found</p>)

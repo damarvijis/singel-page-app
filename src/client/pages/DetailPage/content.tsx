@@ -4,18 +4,18 @@ import { match } from "ts-pattern"
 import { DetailActionType, DetailStateType } from "./reducer"
 
 type DetailContentPropsType = {
-  onClickHome: (query: Record<string, string>) => void
+  onSetUrl: (path: string, query: Record<string, string>) => void
   send: (action: DetailActionType) => void
   state: DetailStateType
 }
 
-const DetailContent = ({ send, state, onClickHome }: DetailContentPropsType) => {
+const DetailContent = ({ send, state, onSetUrl }: DetailContentPropsType) => {
   return (
     <div>
       <Link
         href="/home"
         label="Back to Home"
-        onClick={onClickHome}
+        onClick={onSetUrl}
       />
       {
         match(state.tag)
